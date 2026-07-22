@@ -232,6 +232,18 @@ class AlfAhouBrain:
             _persist(session)
             return ChatResult(session.id, llm_text, "text", None, "llm", self._suggestions(lang, "llm"), lang)
 
+        # Si le LLM est configuré mais en erreur (quota, etc.), ne pas mentir via le fallback local
+        if self.llm.available() and self.llm.last_error:
+            err = (
+                "Je suis un peu saturé côté cloud pour le moment — réessaie dans quelques secondes. "
+                "Mes réponses à jour passent par la recherche web en direct."
+                if lang == "fr"
+                else "The cloud model is briefly saturated — try again in a few seconds. Live answers use web search."
+            )
+            session.add("assistant", err)
+            _persist(session)
+            return ChatResult(session.id, err, "text", None, "llm_busy", self._suggestions(lang, "general"), lang)
+
         # Fallback sans clé / hors ligne
         basic = self._conversational_basics(prompt, lang, session)
         if basic:

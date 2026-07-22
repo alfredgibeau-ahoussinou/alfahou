@@ -331,6 +331,22 @@ class CloudLLM:
         except urllib.error.HTTPError as e:
             body = e.read().decode("utf-8", errors="replace")[:500]
             self.last_error = f"HTTP {e.code}: {body}"
+            # Rate limit : une seule nouvelle tentative après pause courte
+            if e.code == 429 and not getattr(self, "_retried_429", False):
+                self._retried_429 = True
+                import time
+
+                time.sleep(3.5)
+                try:
+                    return self.chat(
+                        user_message=user_message,
+                        history=history,
+                        lang=lang,
+                        mode=mode,
+                        memory=memory,
+                    )
+                finally:
+                    self._retried_429 = False
             # Fallback chaîne : HF 402 → Groq ; modèle invalide → GPT-OSS
             if e.code in {402, 429} and provider == "hf" and os.environ.get("GROQ_API_KEY", "").strip():
                 self._resolved = None
@@ -359,7 +375,11 @@ class CloudLLM:
             raise RuntimeError(f"LLM indisponible: {e}") from e
 
         try:
-            text = data["choices"][0]["message"]["content"]
+            msg = data["choices"][0]["message"]
+            text = msg.get("content")
+            # Parfois le contenu est dans un champ alternatif après outils
+            if not text and isinstance(msg.get("reasoning"), str):
+                text = msg.get("reasoning")
         except (KeyError, IndexError, TypeError) as e:
             self.last_error = f"Réponse invalide: {str(data)[:300]}"
             raise RuntimeError(self.last_error) from e
