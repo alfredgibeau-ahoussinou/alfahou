@@ -18,7 +18,7 @@ async function refreshHealth() {
     ].filter(Boolean).join(" · ");
     deviceEl.textContent = `${data.device} · ${ready}`;
   } catch {
-    deviceEl.textContent = "hors ligne";
+    deviceEl.textContent = "API en démarrage ou hors ligne";
   }
 }
 
@@ -70,7 +70,7 @@ form.addEventListener("submit", async (e) => {
   if (!prompt) return;
   const modality = form.querySelector('input[name="modality"]:checked').value;
   goBtn.disabled = true;
-  setStatus("AlfAhou génère…");
+  setStatus("AlfAhou génère… (cold start possible la 1re fois)");
   resultEl.hidden = true;
 
   try {
@@ -79,12 +79,19 @@ form.addEventListener("submit", async (e) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ prompt, modality, max_tokens: 220 }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || "Échec de génération");
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const detail = data.detail || data.message || `HTTP ${res.status}`;
+      throw new Error(typeof detail === "string" ? detail : JSON.stringify(detail));
+    }
     setStatus("Terminé.");
     renderResult(data);
   } catch (err) {
-    setStatus(err.message || String(err), true);
+    setStatus(
+      (err && err.message) ||
+        "API indisponible. Déploie le backend Render ou lance en local.",
+      true
+    );
   } finally {
     goBtn.disabled = false;
   }

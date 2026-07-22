@@ -1,0 +1,22 @@
+[build]
+  publish = "site"
+  command = "mkdir -p site && cp -R alfahou/api/static/* site/ && cp -f outputs/img_20260722_212850.png site/demo-image.png 2>/dev/null || true"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://alfahou.onrender.com/api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/outputs/*"
+  to = "https://alfahou.onrender.com/outputs/:splat"
+  status = 200
+  force = true

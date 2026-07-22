@@ -5,13 +5,14 @@ __pycache__/
 venv/
 .env
 .DS_Store
-weights/*
-!weights/.gitkeep
 outputs/*
 !outputs/.gitkeep
+!outputs/img_20260722_212850.png
 data/raw/*
 !data/raw/.gitkeep
+site/
 *.log
 .pytest_cache/
 .mypy_cache/
 node_modules/
+.netlify/

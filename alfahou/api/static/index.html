@@ -3,7 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AlfAhou — Alfred Ahoussinou</title>
+  <title>AlfAhou — IA multimédia d'Alfred Ahoussinou</title>
+  <meta name="description" content="AlfAhou : IA maison d'Alfred Ahoussinou. Texte, image, vidéo et PDF — modèles locaux from scratch, zéro API cloud." />
+  <meta property="og:title" content="AlfAhou — Alfred Ahoussinou" />
+  <meta property="og:description" content="IA multimédia from scratch : texte, image, vidéo, PDF." />
+  <meta property="og:type" content="website" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -11,36 +15,76 @@
 </head>
 <body>
   <div class="atmosphere" aria-hidden="true"></div>
+
   <header class="top">
+    <nav class="nav">
+      <a href="#studio">Studio</a>
+      <a href="#systeme">Système</a>
+      <a id="github-link" href="https://github.com/alfredgibeau-ahoussinou/alfahou" target="_blank" rel="noopener">GitHub</a>
+    </nav>
     <p class="owner">Alfred Ahoussinou</p>
   </header>
 
-  <main class="hero">
-    <h1 class="brand">AlfAhou</h1>
-    <p class="tagline">IA multimédia maison — texte, image, vidéo, PDF. Zéro API cloud.</p>
-
-    <form id="studio" class="studio" autocomplete="off">
-      <label class="sr-only" for="prompt">Prompt</label>
-      <textarea id="prompt" name="prompt" rows="3" placeholder="Décris ce que tu veux créer…" required></textarea>
-      <div class="controls">
-        <div class="modes" role="group" aria-label="Modalité">
-          <label><input type="radio" name="modality" value="auto" checked /> Auto</label>
-          <label><input type="radio" name="modality" value="text" /> Texte</label>
-          <label><input type="radio" name="modality" value="image" /> Image</label>
-          <label><input type="radio" name="modality" value="video" /> Vidéo</label>
-          <label><input type="radio" name="modality" value="pdf" /> PDF</label>
-        </div>
-        <button type="submit" id="go">Générer</button>
+  <main>
+    <section class="hero" id="top">
+      <h1 class="brand">AlfAhou</h1>
+      <p class="tagline">IA multimédia maison — texte, image, vidéo, PDF. Zéro API cloud.</p>
+      <div class="cta-row">
+        <a class="btn primary" href="#studio">Ouvrir le studio</a>
+        <a class="btn ghost" href="https://github.com/alfredgibeau-ahoussinou/alfahou" target="_blank" rel="noopener">Code source</a>
       </div>
-    </form>
+    </section>
 
-    <p id="status" class="status" hidden></p>
-    <section id="result" class="result" hidden></section>
+    <section class="studio-wrap" id="studio">
+      <h2 class="section-title">Studio</h2>
+      <p class="section-lead">Une intention. Quatre modalités. Tout tourne sur les modèles AlfAhou.</p>
+
+      <form id="studio" class="studio" autocomplete="off">
+        <label class="sr-only" for="prompt">Prompt</label>
+        <textarea id="prompt" name="prompt" rows="3" placeholder="Décris ce que tu veux créer…" required></textarea>
+        <div class="controls">
+          <div class="modes" role="group" aria-label="Modalité">
+            <label><input type="radio" name="modality" value="auto" checked /> Auto</label>
+            <label><input type="radio" name="modality" value="text" /> Texte</label>
+            <label><input type="radio" name="modality" value="image" /> Image</label>
+            <label><input type="radio" name="modality" value="video" /> Vidéo</label>
+            <label><input type="radio" name="modality" value="pdf" /> PDF</label>
+          </div>
+          <button type="submit" id="go">Générer</button>
+        </div>
+      </form>
+
+      <p id="status" class="status" hidden></p>
+      <section id="result" class="result" hidden></section>
+    </section>
+
+    <section class="system" id="systeme">
+      <h2 class="section-title">Système</h2>
+      <p class="section-lead">Pas une intégration d’API tierce — des réseaux entraînés et servis pour Alfred Ahoussinou.</p>
+      <ul class="pillars">
+        <li>
+          <strong>Texte</strong>
+          <span>Mini-GPT transformer causatif, entraîné caractère par caractère.</span>
+        </li>
+        <li>
+          <strong>Image</strong>
+          <span>Diffusion DDPM + UNet conditionné par embedding texte.</span>
+        </li>
+        <li>
+          <strong>Vidéo</strong>
+          <span>Image de base + champ de mouvement neuronal → MP4.</span>
+        </li>
+        <li>
+          <strong>PDF</strong>
+          <span>Composition documentaire à partir du contenu généré.</span>
+        </li>
+      </ul>
+    </section>
   </main>
 
   <footer class="foot">
     <span id="device">—</span>
-    <span>Modèles locaux · PyTorch</span>
+    <span>AlfAhou · PyTorch · Alfred Ahoussinou</span>
   </footer>
   <script src="/app.js"></script>
 </body>

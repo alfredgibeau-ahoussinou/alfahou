@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: alfahou
+    runtime: docker
+    plan: free
+    region: frankfurt
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"

@@ -2,16 +2,27 @@
 
 IA multimédia maison d’**Alfred Ahoussinou** — texte, images, vidéos et PDF, **sans API cloud**.
 
-Les réseaux (transformer, diffusion, encodeur) sont implémentés et entraînés localement (PyTorch + Apple Silicon MPS).
+Les réseaux (transformer, diffusion, encodeur) sont implémentés et entraînés localement (PyTorch).
 
-## Démarrage rapide
+## Production
+
+- **Site** : [https://alfahou.netlify.app](https://alfahou.netlify.app)
+- **Code** : [github.com/alfredgibeau-ahoussinou/alfahou](https://github.com/alfredgibeau-ahoussinou/alfahou)
+
+### Backend API (Render)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/alfredgibeau-ahoussinou/alfahou)
+
+Le site Netlify proxy `/api` vers `https://alfahou.onrender.com`. Après le déploiement Render (plan free), le studio en ligne génère vraiment.
+
+## Démarrage local
 
 ```bash
 cd ~/Projects/alfahou
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-python scripts/bootstrap.py        # entraîne les mini-modèles
+# poids déjà inclus dans weights/ — sinon: python scripts/bootstrap.py
 uvicorn alfahou.api.app:app --reload --port 8787
 ```
 

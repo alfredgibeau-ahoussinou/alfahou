@@ -1,0 +1,12 @@
+.venv
+venv
+__pycache__
+*.pyc
+.git
+.DS_Store
+.netlify
+site
+outputs/*
+!outputs/.gitkeep
+*.log
+node_modules
