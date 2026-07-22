@@ -9,14 +9,5 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
 
-[[redirects]]
-  from = "/api/*"
-  to = "https://alfahou.onrender.com/api/:splat"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/outputs/*"
-  to = "https://alfahou.onrender.com/outputs/:splat"
-  status = 200
-  force = true
+# Pas de proxy /api : Netlify coupe à ~26s (504).
+# Le front appelle directement https://alfahou.onrender.com

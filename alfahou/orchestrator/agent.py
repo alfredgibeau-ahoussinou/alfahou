@@ -72,12 +72,14 @@ class AlfAhou:
             path = self.video.generate(prompt)
             return GenerationResult(modality=kind, file_path=str(path), text=prompt)
 
-        # PDF : texte (+ image d'illustration si possible)
+        # PDF : texte (+ image optionnelle — désactivée en prod cloud pour éviter les timeouts)
+        from alfahou.core.config import settings
+
         body = self.text.generate(prompt, max_tokens=max_tokens) if self.text.available() else prompt
         image_path: Path | None = None
-        if self.image.available():
+        if settings.pdf_with_image and self.image.available():
             try:
-                image_path = self.image.generate(prompt, steps=25)
+                image_path = self.image.generate(prompt, steps=min(10, settings.image_infer_steps))
             except Exception:
                 image_path = None
         title = prompt.strip().split("\n")[0][:80] or "Document AlfAhou"

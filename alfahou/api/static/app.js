@@ -1,3 +1,5 @@
+const API_BASE = window.ALFAHOU_API || "https://alfahou.onrender.com";
+
 const form = document.getElementById("studio");
 const promptEl = document.getElementById("prompt");
 const statusEl = document.getElementById("status");
@@ -5,9 +7,19 @@ const resultEl = document.getElementById("result");
 const goBtn = document.getElementById("go");
 const deviceEl = document.getElementById("device");
 
+function apiUrl(path) {
+  return `${API_BASE}${path}`;
+}
+
+function assetUrl(path) {
+  if (!path) return path;
+  if (path.startsWith("http")) return path;
+  return apiUrl(path);
+}
+
 async function refreshHealth() {
   try {
-    const res = await fetch("/api/health");
+    const res = await fetch(apiUrl("/api/health"));
     const data = await res.json();
     const m = data.models || {};
     const ready = [
@@ -44,7 +56,7 @@ function renderResult(data) {
   }
 
   if (data.file_url) {
-    const url = data.file_url;
+    const url = assetUrl(data.file_url);
     if (data.modality === "image" || url.endsWith(".png") || url.endsWith(".jpg")) {
       const img = document.createElement("img");
       img.src = url;
@@ -59,7 +71,7 @@ function renderResult(data) {
       resultEl.appendChild(vid);
     }
     const link = document.createElement("p");
-    link.innerHTML = `<a href="${url}" download>Télécharger le fichier</a>`;
+    link.innerHTML = `<a href="${url}" download target="_blank" rel="noopener">Télécharger le fichier</a>`;
     resultEl.appendChild(link);
   }
 }
@@ -70,14 +82,22 @@ form.addEventListener("submit", async (e) => {
   if (!prompt) return;
   const modality = form.querySelector('input[name="modality"]:checked').value;
   goBtn.disabled = true;
-  setStatus("AlfAhou génère… (cold start possible la 1re fois)");
+  setStatus("AlfAhou génère… (jusqu’à ~30s si cold start)");
   resultEl.hidden = true;
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 120000);
+
   try {
-    const res = await fetch("/api/generate", {
+    const res = await fetch(apiUrl("/api/generate"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt, modality, max_tokens: 220 }),
+      body: JSON.stringify({
+        prompt,
+        modality,
+        max_tokens: modality === "text" || modality === "pdf" || modality === "auto" ? 120 : 40,
+      }),
+      signal: controller.signal,
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -87,12 +107,13 @@ form.addEventListener("submit", async (e) => {
     setStatus("Terminé.");
     renderResult(data);
   } catch (err) {
-    setStatus(
-      (err && err.message) ||
-        "API indisponible. Déploie le backend Render ou lance en local.",
-      true
-    );
+    const msg =
+      err && err.name === "AbortError"
+        ? "Délai dépassé. Réessaie — le free tier Render peut être lent au réveil."
+        : (err && err.message) || "API indisponible.";
+    setStatus(msg, true);
   } finally {
+    clearTimeout(timeout);
     goBtn.disabled = false;
   }
 });

@@ -44,8 +44,8 @@ class VideoEngine:
         frames = frames or settings.video_frames
         fps = fps or settings.video_fps
 
-        # image de base
-        base_path = self.image_engine.generate(prompt, steps=30)
+        # image de base (peu de steps pour rester sous les timeouts cloud)
+        base_path = self.image_engine.generate(prompt, steps=min(12, settings.image_infer_steps))
         base = np.array(Image.open(base_path).convert("RGB")).astype(np.float32) / 255.0
         h, w, _ = base.shape
         cond = self.text_engine.embed(prompt).to(DEVICE)

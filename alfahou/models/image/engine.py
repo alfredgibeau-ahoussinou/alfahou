@@ -40,19 +40,20 @@ class ImageEngine:
         diffusion.eval()
         self.diffusion = diffusion
 
-    def generate(self, prompt: str, steps: int = 40) -> Path:
+    def generate(self, prompt: str, steps: int | None = None) -> Path:
         if not self.available():
             raise RuntimeError("Modèle image non entraîné. Lance scripts/bootstrap.py")
         assert self.diffusion is not None
+        steps = steps if steps is not None else settings.image_infer_steps
         cond = self.text_engine.embed(prompt).unsqueeze(0).to(DEVICE)
-        # normaliser
         cond = cond / (cond.norm(dim=-1, keepdim=True) + 1e-6)
         size = settings.image_size
-        sample = self.diffusion.sample(
-            cond,
-            shape=(1, settings.image_channels, size, size),
-            steps=steps,
-        )
+        with torch.inference_mode():
+            sample = self.diffusion.sample(
+                cond,
+                shape=(1, settings.image_channels, size, size),
+                steps=steps,
+            )
         img = ((sample[0].cpu().permute(1, 2, 0).numpy() + 1) * 127.5).clip(0, 255).astype(np.uint8)
         out = settings.outputs_dir / f"img_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
         Image.fromarray(img).save(out)

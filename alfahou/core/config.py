@@ -26,11 +26,13 @@ class Settings(BaseSettings):
     image_size: int = 64
     image_channels: int = 3
     diffusion_steps: int = 200
+    image_infer_steps: int = 12
     unet_base: int = 64
     text_cond_dim: int = 192
 
-    video_frames: int = 24
+    video_frames: int = 12
     video_fps: int = 8
+    pdf_with_image: bool = False
 
     model_config = {"env_prefix": "ALFAHOU_"}
 
