@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AlfAhou — Alfred Ahoussinou</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="atmosphere" aria-hidden="true"></div>
+  <header class="top">
+    <p class="owner">Alfred Ahoussinou</p>
+  </header>
+
+  <main class="hero">
+    <h1 class="brand">AlfAhou</h1>
+    <p class="tagline">IA multimédia maison — texte, image, vidéo, PDF. Zéro API cloud.</p>
+
+    <form id="studio" class="studio" autocomplete="off">
+      <label class="sr-only" for="prompt">Prompt</label>
+      <textarea id="prompt" name="prompt" rows="3" placeholder="Décris ce que tu veux créer…" required></textarea>
+      <div class="controls">
+        <div class="modes" role="group" aria-label="Modalité">
+          <label><input type="radio" name="modality" value="auto" checked /> Auto</label>
+          <label><input type="radio" name="modality" value="text" /> Texte</label>
+          <label><input type="radio" name="modality" value="image" /> Image</label>
+          <label><input type="radio" name="modality" value="video" /> Vidéo</label>
+          <label><input type="radio" name="modality" value="pdf" /> PDF</label>
+        </div>
+        <button type="submit" id="go">Générer</button>
+      </div>
+    </form>
+
+    <p id="status" class="status" hidden></p>
+    <section id="result" class="result" hidden></section>
+  </main>
+
+  <footer class="foot">
+    <span id="device">—</span>
+    <span>Modèles locaux · PyTorch</span>
+  </footer>
+  <script src="/app.js"></script>
+</body>
+</html>

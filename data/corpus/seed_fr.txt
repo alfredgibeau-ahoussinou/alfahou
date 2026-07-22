@@ -1,0 +1,56 @@
+AlfAhou est l'intelligence artificielle personnelle d'Alfred Ahoussinou.
+AlfAhou écrit des textes, compose des images, anime des vidéos et produit des documents PDF.
+Contrairement aux services cloud, AlfAhou apprend et génère en local, sur la machine de son auteur.
+Le cœur du langage est un transformer décodeur causatif, entraîné caractère par caractère.
+Chaque attention multi-têtes observe le passé du texte pour prédire le prochain symbole.
+Les plongements de tokens et de positions construisent une représentation dense du contexte.
+La génération d'images repose sur une diffusion gaussienne guidée par un UNet conditionnel.
+Le bruit est ajouté progressivement puis retiré, étape après étape, jusqu'à une forme visible.
+L'embedding texte conditionne les couleurs, la géométrie et l'ambiance de l'image.
+La vidéo naît d'une image de base transformée par un champ de mouvement neuronal.
+Les frames s'enchaînent pour créer un clip fluide, exporté en MP4.
+Le moteur PDF assemble titre, corps de texte et illustration dans une mise en page claire.
+Alfred Ahoussinou a conçu AlfAhou pour maîtriser de bout en bout la chaîne créative.
+Écrire, visualiser, animer, documenter: quatre modalités, une seule intelligence locale.
+Le dispositif tourne sur Apple Silicon grâce à l'accélération MPS de PyTorch.
+Entraîner un modèle, c'est ajuster des millions de poids pour réduire l'erreur de prédiction.
+La fonction de perte mesure l'écart entre la sortie du réseau et la cible désirée.
+La descente de gradient met à jour les paramètres dans la direction qui diminue cette perte.
+Un corpus riche en français aide AlfAhou à produire des phrases plus naturelles.
+La créativité machine n'imite pas magiquement: elle compresse des régularités apprises.
+Un prompt précis oriente mieux le modèle qu'une consigne vague.
+Demander une image géométrique, un texte narratif ou un rapport PDF active des pipelines distincts.
+L'orchestrateur AlfAhou détecte l'intention et choisit la modalité adaptée.
+Aucune clé API tierce n'est requise pour le fonctionnement de base.
+Les poids entraînés sont sauvegardés localement dans le dossier weights.
+Les résultats générés sont stockés dans outputs pour consultation et téléchargement.
+La science des réseaux de neurones transforme le calcul en perception et en langage.
+Transformer, convolution, diffusion: des briques assemblées pour une IA complète.
+Alfred construit, expérimente, itère: AlfAhou grandit avec chaque nouvel entraînement.
+Le futur de la création personnelle passe par des modèles que l'on possède vraiment.
+La lumière émeraude traverse la forêt numérique d'AlfAhou.
+Des cercles, des carrés, des étoiles: le modèle image apprend d'abord les formes simples.
+Puis viennent les textures, les dégradés, les compositions plus audacieuses.
+Un document PDF peut raconter une histoire illustrée née entièrement dans la machine.
+La vidéo courte capture le souffle d'une idée en mouvement.
+Texte après texte, AlfAhou affine sa voix: claire, directe, utile.
+L'utilisateur dialogue, le système répond, la boucle créative s'accélère.
+Maîtriser le code, les maths et le design: trois piliers du projet AlfAhou.
+Ici, chaque ligne de Python est une pierre de l'édifice d'Alfred Ahoussinou.
+Bienvenue dans l'atelier d'une intelligence artificielle faite maison.
+La patience de l'entraînement se transforme en vitesse d'inférence.
+Sur un Mac M2, les tenseurs circulent dans la mémoire unifiée avec efficacité.
+Le tokeniseur caractères reste simple, transparent et entièrement contrôlable.
+Plus tard, un tokeniseur sous-mots pourra enrichir le vocabulaire.
+Pour l'instant, la priorité est une boucle complète qui fonctionne vraiment.
+Générer, inspecter, corriger, réentraîner: la méthode scientifique appliquée à l'IA.
+AlfAhou n'est pas une démo vide: c'est un laboratoire vivant.
+Les formes colorées du dataset synthétique enseignent la conditionnalité prompt-image.
+Le bruit gaussien est le matériau brut de la diffusion.
+Retirer le bruit, c'est sculpter une image dans le hasard.
+La causalité du langage empêche le modèle de tricher avec le futur.
+Chaque nouveau token dépend seulement de ce qui précède.
+Cette discipline produit des textes cohérents, même avec un petit réseau.
+Alfred Ahoussinou signe ses créations: AlfAhou porte son nom et son ambition.
+Créer sans dépendre d'un service distant, c'est reprendre le pouvoir technique.
+L'atelier s'ouvre. La génération commence. AlfAhou écoute.
