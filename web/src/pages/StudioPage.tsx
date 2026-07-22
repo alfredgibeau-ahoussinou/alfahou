@@ -172,6 +172,24 @@ export function StudioPage() {
       .catch(() => setHealth("hors ligne"));
   }, []);
 
+  // Clavier iOS/Android : remonte la barre de saisie
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const sync = () => {
+      const offset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      document.documentElement.style.setProperty("--kbd-offset", `${offset}px`);
+    };
+    sync();
+    vv.addEventListener("resize", sync);
+    vv.addEventListener("scroll", sync);
+    return () => {
+      vv.removeEventListener("resize", sync);
+      vv.removeEventListener("scroll", sync);
+      document.documentElement.style.removeProperty("--kbd-offset");
+    };
+  }, []);
+
   useEffect(() => {
     if (bootRef.current) return;
     bootRef.current = true;
@@ -304,18 +322,18 @@ export function StudioPage() {
   };
 
   return (
-    <div className="relative z-10 flex min-h-dvh flex-col">
-      <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-white/10 bg-[rgba(6,7,8,0.65)] px-[clamp(1rem,3vw,2rem)] py-3 backdrop-blur-md">
-        <div className="flex min-w-0 items-center gap-3">
+    <div className="relative z-10 flex h-dvh max-h-dvh flex-col overflow-hidden">
+      <header className="sticky top-0 z-20 flex shrink-0 items-center justify-between gap-2 border-b border-white/10 bg-[rgba(6,7,8,0.72)] px-[clamp(0.85rem,3vw,2rem)] py-2.5 backdrop-blur-md sm:gap-3 sm:py-3">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <button
             type="button"
             onClick={() => setSidebarOpen((v) => !v)}
-            className="rounded-[var(--radius-sm)] border border-white/15 px-3 py-2 text-[0.72rem] tracking-[0.1em] text-[var(--color-ink-dim)] uppercase hover:border-[var(--color-foil)] hover:text-[var(--color-ink)] lg:hidden"
+            className="min-h-10 rounded-[var(--radius-sm)] border border-white/15 px-3 py-2 text-[0.72rem] tracking-[0.1em] text-[var(--color-ink-dim)] uppercase hover:border-[var(--color-foil)] hover:text-[var(--color-ink)] lg:hidden"
             aria-expanded={sidebarOpen}
           >
             Historique
           </button>
-          <Link to="/" className="font-brand text-[1.15rem] font-extrabold tracking-[-0.04em]">
+          <Link to="/" className="font-brand truncate text-[1.1rem] font-extrabold tracking-[-0.04em] sm:text-[1.15rem]">
             AlfAhou
           </Link>
           <p className="hidden truncate text-[0.7rem] text-[var(--color-mute)] sm:block">
@@ -323,17 +341,17 @@ export function StudioPage() {
             {health}
           </p>
         </div>
-        <div className="flex flex-wrap justify-end gap-0.5">
+        <div className="flex shrink-0 flex-wrap justify-end gap-0.5">
           <button
             type="button"
             onClick={startNewConversation}
-            className="px-3 py-2.5 text-[0.75rem] tracking-[0.12em] text-[var(--color-foil)] uppercase hover:text-[var(--color-ink)]"
+            className="min-h-10 px-2.5 py-2 text-[0.72rem] tracking-[0.1em] text-[var(--color-foil)] uppercase hover:text-[var(--color-ink)] sm:px-3 sm:text-[0.75rem]"
           >
             + Nouveau
           </button>
           <Link
             to="/manifeste"
-            className="hidden px-3 py-2.5 text-[0.75rem] tracking-[0.12em] text-[var(--color-ink-dim)] uppercase hover:text-[var(--color-ink)] sm:inline"
+            className="hidden min-h-10 px-3 py-2.5 text-[0.75rem] tracking-[0.12em] text-[var(--color-ink-dim)] uppercase hover:text-[var(--color-ink)] sm:inline-flex sm:items-center"
           >
             Manifeste
           </Link>
@@ -346,14 +364,14 @@ export function StudioPage() {
               if (next && lastBot) speakText(lastBot);
               else window.speechSynthesis?.cancel();
             }}
-            className={`px-3 py-2.5 text-[0.75rem] tracking-[0.12em] uppercase ${speak ? "text-[var(--color-foil)]" : "text-[var(--color-ink-dim)] hover:text-[var(--color-ink)]"}`}
+            className={`min-h-10 px-2.5 py-2 text-[0.72rem] tracking-[0.1em] uppercase sm:px-3 sm:text-[0.75rem] ${speak ? "text-[var(--color-foil)]" : "text-[var(--color-ink-dim)] hover:text-[var(--color-ink)]"}`}
           >
             Voix
           </button>
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-[1280px] flex-1 gap-0 px-0 md:gap-6 md:px-[clamp(1rem,3vw,2rem)] md:pt-4 md:pb-6">
+      <div className="mx-auto flex min-h-0 w-full max-w-[1280px] flex-1 gap-0 px-0 md:gap-6 md:px-[clamp(1rem,3vw,2rem)] md:pt-4 md:pb-6">
         {/* Sidebar conversations */}
         <aside
           className={`fixed inset-y-0 left-0 z-30 flex w-[min(20rem,88vw)] flex-col border-r border-white/10 bg-[rgba(8,10,11,0.96)] pt-[3.6rem] backdrop-blur-xl transition-transform duration-300 lg:static lg:z-0 lg:w-[17.5rem] lg:shrink-0 lg:translate-x-0 lg:rounded-[var(--radius-lg)] lg:border lg:border-white/10 lg:bg-[rgba(13,16,18,0.55)] lg:pt-0 lg:backdrop-blur-md ${
@@ -403,7 +421,7 @@ export function StudioPage() {
                     type="button"
                     aria-label="Supprimer"
                     onClick={(e) => onDelete(s.id, e)}
-                    className="shrink-0 px-1 text-[0.7rem] text-[var(--color-mute)] opacity-0 transition group-hover:opacity-100 hover:text-[var(--color-danger)]"
+                    className="min-h-10 shrink-0 px-2 text-[0.85rem] text-[var(--color-mute)] opacity-100 transition hover:text-[var(--color-danger)] lg:opacity-0 lg:group-hover:opacity-100"
                   >
                     ✕
                   </button>
@@ -422,7 +440,7 @@ export function StudioPage() {
           />
         )}
 
-        <div className="flex min-w-0 flex-1 flex-col px-[clamp(1rem,3vw,1.5rem)] pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:px-0 lg:pb-0">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col px-[clamp(0.85rem,3vw,1.5rem)] pb-[calc(5.75rem+env(safe-area-inset-bottom))] lg:px-0 lg:pb-0">
           <div className="mb-3 hidden items-end justify-between gap-4 border-b border-white/10 pb-4 lg:flex">
             <div>
               <p className="text-[0.65rem] tracking-[0.16em] text-[var(--color-mute)] uppercase">Fil actif</p>
@@ -512,7 +530,10 @@ export function StudioPage() {
           </div>
 
           <section className="flex min-h-0 flex-1 flex-col gap-3 md:min-h-[calc(100dvh-8rem)] md:rounded-[var(--radius-lg)] md:border md:border-white/10 md:bg-[rgba(13,16,18,0.45)] md:p-5 md:backdrop-blur-md">
-            <div ref={threadRef} className="flex flex-1 flex-col gap-6 overflow-y-auto py-2 md:min-h-[12rem] md:py-4">
+            <div
+              ref={threadRef}
+              className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain py-2 [-webkit-overflow-scrolling:touch] md:min-h-[12rem] md:gap-6 md:py-4"
+            >
               <AnimatePresence initial={false}>
                 {turns.map((t) => (
                   <motion.article
@@ -598,13 +619,13 @@ export function StudioPage() {
             </div>
 
             {suggestions.length > 0 && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex shrink-0 gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:flex-wrap md:overflow-visible">
                 {suggestions.map((s) => (
                   <button
                     key={s}
                     type="button"
                     onClick={() => onSubmit(undefined, s)}
-                    className="rounded-[var(--radius-md)] border border-white/15 bg-white/[0.03] px-3.5 py-2 text-[0.84rem] text-[var(--color-ink-dim)] transition hover:border-[var(--color-foil)] hover:text-[var(--color-ink)]"
+                    className="min-h-11 shrink-0 rounded-[var(--radius-md)] border border-white/15 bg-white/[0.03] px-3.5 py-2.5 text-[0.84rem] text-[var(--color-ink-dim)] transition hover:border-[var(--color-foil)] hover:text-[var(--color-ink)]"
                   >
                     {s}
                   </button>
@@ -614,9 +635,9 @@ export function StudioPage() {
 
             <form
               onSubmit={onSubmit}
-              className="fixed right-0 bottom-0 left-0 z-40 grid grid-cols-[1fr_auto] items-end gap-1.5 bg-[linear-gradient(180deg,transparent,rgba(6,7,8,0.95)_32%)] px-[clamp(1rem,3vw,1.5rem)] pt-3 pb-[calc(0.7rem+env(safe-area-inset-bottom))] md:relative md:bg-none md:px-0 md:pt-2 md:pb-0"
+              className="fixed right-0 bottom-[var(--kbd-offset,0px)] left-0 z-40 grid grid-cols-[1fr_auto] items-end gap-1.5 bg-[linear-gradient(180deg,transparent,rgba(6,7,8,0.97)_28%)] px-[clamp(0.85rem,3vw,1.5rem)] pt-3 pb-[calc(0.65rem+env(safe-area-inset-bottom))] md:relative md:bottom-auto md:bg-none md:px-0 md:pt-2 md:pb-0"
             >
-              <div className="pointer-events-none absolute inset-x-[clamp(1rem,3vw,1.5rem)] inset-y-2 rounded-[var(--radius-lg)] border border-white/15 bg-[rgba(13,16,18,0.88)] backdrop-blur-xl md:inset-0" />
+              <div className="pointer-events-none absolute inset-x-[clamp(0.85rem,3vw,1.5rem)] inset-y-2 rounded-[var(--radius-lg)] border border-white/15 bg-[rgba(13,16,18,0.92)] backdrop-blur-xl md:inset-0" />
               <textarea
                 ref={taRef}
                 value={prompt}
@@ -625,23 +646,26 @@ export function StudioPage() {
                   autoSize();
                 }}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
+                  if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
                     e.preventDefault();
                     onSubmit();
                   }
                 }}
                 rows={1}
                 required
+                enterKeyHint="send"
+                autoComplete="off"
                 placeholder="Écrire dans l’atelier…"
-                className="relative z-10 min-h-[2.75rem] max-h-32 w-full resize-none border-0 bg-transparent py-3.5 pl-4 text-[1.02rem] leading-relaxed text-[var(--color-ink)] outline-none placeholder:text-[var(--color-mute)]"
+                className="relative z-10 min-h-12 max-h-32 w-full resize-none border-0 bg-transparent py-3.5 pl-4 text-base leading-relaxed text-[var(--color-ink)] outline-none placeholder:text-[var(--color-mute)] sm:min-h-[2.75rem] sm:text-[1.02rem]"
               />
               <button
                 type="submit"
                 disabled={busy}
-                className="relative z-10 m-1.5 inline-flex min-h-[2.75rem] items-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-ink)] px-4 text-[0.72rem] font-semibold tracking-[0.1em] text-[var(--color-bg)] uppercase transition hover:bg-[var(--color-foil)] disabled:opacity-40"
+                aria-label="Envoyer"
+                className="relative z-10 m-1.5 inline-flex min-h-12 min-w-12 items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-ink)] px-3.5 text-[0.72rem] font-semibold tracking-[0.1em] text-[var(--color-bg)] uppercase transition hover:bg-[var(--color-foil)] disabled:opacity-40 sm:min-h-[2.75rem] sm:px-4"
               >
                 <span className="hidden sm:inline">Envoyer</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
                   <path
                     d="M5 12h14M13 6l6 6-6 6"
                     stroke="currentColor"

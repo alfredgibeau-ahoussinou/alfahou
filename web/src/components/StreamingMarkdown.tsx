@@ -12,19 +12,23 @@ type Props = {
 /**
  * Affiche le markdown progressivement (rafales de caractères),
  * avec curseur clignotant pendant l’animation.
+ * Mobile : skip au tap, reduced-motion, scroll throttlé.
  */
 export function StreamingMarkdown({ text, className, animate = false, onDone, onProgress }: Props) {
   const [shown, setShown] = useState(animate ? "" : text);
   const [streaming, setStreaming] = useState(!!animate);
   const onDoneRef = useRef(onDone);
   const onProgressRef = useRef(onProgress);
+  const lastProgress = useRef(0);
   onDoneRef.current = onDone;
   onProgressRef.current = onProgress;
 
   useEffect(() => {
-    if (!animate) {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!animate || reduce) {
       setShown(text);
       setStreaming(false);
+      if (animate && reduce) onDoneRef.current?.();
       return;
     }
 
@@ -35,7 +39,10 @@ export function StreamingMarkdown({ text, className, animate = false, onDone, on
     let last = performance.now();
     let finished = false;
     const len = text.length;
-    const cps = len > 900 ? 140 : len > 400 ? 95 : len > 160 ? 70 : 48;
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
+    // Un peu plus rapide sur mobile (sessions plus courtes, moins de jank)
+    const base = len > 900 ? 140 : len > 400 ? 95 : len > 160 ? 70 : 48;
+    const cps = coarse ? base * 1.25 : base;
 
     const finish = () => {
       if (finished) return;
@@ -51,7 +58,10 @@ export function StreamingMarkdown({ text, className, animate = false, onDone, on
       i = Math.min(len, i + cps * dt);
       const next = Math.floor(i);
       setShown(text.slice(0, next));
-      onProgressRef.current?.();
+      if (now - lastProgress.current > 80) {
+        lastProgress.current = now;
+        onProgressRef.current?.();
+      }
       if (next < len) {
         raf = requestAnimationFrame(step);
       } else {
@@ -84,10 +94,16 @@ export function StreamingMarkdown({ text, className, animate = false, onDone, on
       }}
       role={streaming ? "button" : undefined}
       tabIndex={streaming ? 0 : undefined}
-      title={streaming ? "Cliquer pour afficher tout" : undefined}
+      title={streaming ? "Toucher pour tout afficher" : undefined}
+      aria-label={streaming ? "Réponse en cours — toucher pour tout afficher" : undefined}
     >
       <span dangerouslySetInnerHTML={{ __html: renderLiteMarkdown(shown) }} />
       {streaming && <span className="stream-caret" aria-hidden />}
+      {streaming && (
+        <p className="mt-2 text-[0.68rem] tracking-[0.04em] text-[var(--color-mute)] md:hidden">
+          Toucher pour tout afficher
+        </p>
+      )}
     </div>
   );
 }
