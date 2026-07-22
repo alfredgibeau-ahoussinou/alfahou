@@ -1,15 +1,14 @@
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { MagneticButton } from "../components/MagneticButton";
+import { BrandLogo } from "../components/BrandLogo";
 
 export function IntroPage() {
   const navigate = useNavigate();
   return (
     <div className="relative z-10 grid min-h-dvh grid-rows-[auto_1fr_auto]">
       <header className="flex items-center justify-between px-[clamp(1.1rem,4vw,2.75rem)] py-4">
-        <p className="text-[0.7rem] font-medium tracking-[0.22em] text-[var(--color-foil)] uppercase">
-          Alfred Ahoussinou
-        </p>
+        <BrandLogo heightClass="h-8 sm:h-9" />
         <nav className="flex gap-1">
           <Link
             to="/manifeste"

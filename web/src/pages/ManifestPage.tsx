@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { useRef, type MouseEvent } from "react";
 import { MagneticButton } from "../components/MagneticButton";
+import { BrandLogo } from "../components/BrandLogo";
 
 const CARDS = [
   {
@@ -72,13 +73,16 @@ export function ManifestPage() {
   const navigate = useNavigate();
   return (
     <div className="relative z-10 min-h-dvh px-[clamp(1.1rem,4vw,2.75rem)] pb-16">
-      <header className="flex items-center justify-between py-4">
-        <Link
-          to="/"
-          className="px-3 py-2.5 text-[0.75rem] tracking-[0.12em] text-[var(--color-ink-dim)] uppercase transition-colors hover:text-[var(--color-ink)]"
-        >
-          ← Accueil
-        </Link>
+      <header className="flex items-center justify-between gap-3 py-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <BrandLogo heightClass="h-7 sm:h-8" />
+          <Link
+            to="/"
+            className="hidden px-2 py-2.5 text-[0.75rem] tracking-[0.12em] text-[var(--color-ink-dim)] uppercase transition-colors hover:text-[var(--color-ink)] sm:inline"
+          >
+            Accueil
+          </Link>
+        </div>
         <MagneticButton className="!px-4 !py-3 !text-[0.7rem]" onClick={() => navigate("/atelier")}>
           Atelier
         </MagneticButton>

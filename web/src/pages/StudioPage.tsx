@@ -17,6 +17,7 @@ import {
 } from "../lib/api";
 import { StreamingMarkdown } from "../components/StreamingMarkdown";
 import { MediaAttachment } from "../components/MediaAttachment";
+import { BrandLogo } from "../components/BrandLogo";
 
 type Turn = {
   id: string;
@@ -333,9 +334,7 @@ export function StudioPage() {
           >
             Historique
           </button>
-          <Link to="/" className="font-brand truncate text-[1.1rem] font-extrabold tracking-[-0.04em] sm:text-[1.15rem]">
-            AlfAhou
-          </Link>
+          <BrandLogo heightClass="h-6 sm:h-7" />
           <p className="hidden truncate text-[0.7rem] text-[var(--color-mute)] sm:block">
             <span className="mr-1.5 inline-block h-1.5 w-1.5 bg-[var(--color-foil)] shadow-[0_0_0_3px_rgba(212,184,150,0.15)]" />
             {health}
