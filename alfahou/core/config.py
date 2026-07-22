@@ -34,12 +34,12 @@ class Settings(BaseSettings):
     video_fps: int = 8
     pdf_with_image: bool = False
 
-    # LLM cloud moderne (Groq GPT-OSS / Compound, OpenRouter, HF, Ollama)
+    # LLM multi-route (Groq + OpenRouter + HF…)
     llm_enabled: bool = True
     llm_provider: str = "auto"  # auto | groq | compound | openrouter | hf | ollama
     llm_api_key: str = ""
     llm_base_url: str = "https://api.groq.com/openai/v1"
-    llm_model: str = "openai/gpt-oss-120b"
+    llm_model: str = "openai/gpt-oss-20b"
     llm_max_tokens: int = 2048
     llm_timeout: float = 120.0
 
