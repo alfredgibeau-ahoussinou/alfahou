@@ -5,43 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>AlfAhou</title>
   <meta name="description" content="AlfAhou — IA multimédia d’Alfred Ahoussinou" />
-  <meta name="theme-color" content="#0E1512" />
+  <meta name="theme-color" content="#A8C4D4" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@50..150,600;50..150,800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,500;12..96,75..100,800&family=Sora:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <div class="app" id="app">
-    <header class="mast">
-      <div class="mast-brand">
-        <a class="logo" href="/" aria-label="AlfAhou">AlfAhou</a>
-        <span class="pulse" aria-hidden="true"></span>
-      </div>
-      <p class="mast-author">Alfred Ahoussinou</p>
-      <div class="mast-tools">
-        <button type="button" id="btn-voice-out" class="tool" title="Lecture vocale">Audio</button>
-        <button type="button" id="btn-reset" class="tool">Nouveau</button>
-        <a class="tool" href="https://github.com/alfredgibeau-ahoussinou/alfahou" target="_blank" rel="noopener">Code</a>
+  <div class="sky" aria-hidden="true"></div>
+  <div class="floor" aria-hidden="true"></div>
+  <div class="haze" aria-hidden="true"></div>
+
+  <div class="shell" id="app">
+    <header class="top">
+      <a class="mark" href="/" aria-label="AlfAhou">AlfAhou</a>
+      <div class="top-actions">
+        <button type="button" id="btn-voice-out" class="ghost" title="Lecture vocale">Voix</button>
+        <button type="button" id="btn-reset" class="ghost">Effacer</button>
+        <a class="ghost" href="https://github.com/alfredgibeau-ahoussinou/alfahou" target="_blank" rel="noopener">Code</a>
       </div>
     </header>
 
-    <div class="workspace">
-      <aside class="brief">
-        <p class="brief-kicker">Correspondance ouverte</p>
-        <h2 class="brief-title">Parle.<br />Crée.<br />Reçois.</h2>
-        <p class="brief-copy">Texte, image, vidéo, PDF — français & anglais. Une IA maison, pas une coque d’API.</p>
-        <ul class="brief-list">
-          <li>Mémoire de conversation</li>
-          <li>Multimédia intégré</li>
-          <li>Modes & dictée</li>
-        </ul>
-        <p class="brief-status" id="device">connexion…</p>
-      </aside>
-
-      <section class="board">
-        <div class="board-top">
-          <label class="select">
+    <main class="layout">
+      <aside class="wall">
+        <p class="byline">Alfred Ahoussinou</p>
+        <h1 class="wordmark" aria-hidden="true">AlfAhou</h1>
+        <p class="pitch">Texte, image, vidéo, PDF — une IA maison, FR &amp; EN.</p>
+        <div class="rig">
+          <label class="field">
             <span>Mode</span>
             <select id="mode">
               <option value="balanced">Équilibré</option>
@@ -50,38 +41,48 @@
               <option value="teacher">Prof</option>
             </select>
           </label>
-          <div class="filters" role="group" aria-label="Modalité">
-            <label><input type="radio" name="modality" value="auto" checked /><span>Auto</span></label>
-            <label><input type="radio" name="modality" value="text" /><span>Texte</span></label>
-            <label><input type="radio" name="modality" value="image" /><span>Image</span></label>
-            <label><input type="radio" name="modality" value="video" /><span>Vidéo</span></label>
-            <label><input type="radio" name="modality" value="pdf" /><span>PDF</span></label>
+          <div class="tabs" role="group" aria-label="Modalité">
+            <label class="tab"><input type="radio" name="modality" value="auto" checked /><span>Auto</span></label>
+            <label class="tab"><input type="radio" name="modality" value="text" /><span>Texte</span></label>
+            <label class="tab"><input type="radio" name="modality" value="image" /><span>Image</span></label>
+            <label class="tab"><input type="radio" name="modality" value="video" /><span>Vidéo</span></label>
+            <label class="tab"><input type="radio" name="modality" value="pdf" /><span>PDF</span></label>
           </div>
         </div>
+        <p class="live" id="device">connexion…</p>
+      </aside>
 
-        <div class="feed" id="thread" aria-live="polite">
-          <article class="row bot">
-            <div class="meta">
-              <span class="who">AlfAhou</span>
-              <span class="when">maintenant</span>
-            </div>
-            <div class="body md">
-              <p>Salut. Dis-moi ce que tu veux — une explication, un plan, une image, une vidéo, un PDF. FR ou EN.</p>
+      <section class="plateau">
+        <div class="reel" id="thread" aria-live="polite">
+          <article class="beat bot welcome">
+            <p class="cue"><span>AlfAhou</span><time>maintenant</time></p>
+            <div class="scene md">
+              <p>Dis ce que tu veux créer ou comprendre. Je réponds, j’illustre, je filme, je mets en PDF.</p>
             </div>
           </article>
         </div>
 
-        <div id="suggestions" class="hints" hidden></div>
+        <div id="suggestions" class="sparks" hidden></div>
 
         <form id="composer" class="dock" autocomplete="off">
-          <button type="button" id="btn-mic" class="dock-side" title="Dicter" aria-label="Dicter">Mic</button>
-          <label class="sr-only" for="prompt">Message</label>
-          <textarea id="prompt" name="prompt" rows="1" placeholder="Écrire ici…" required></textarea>
-          <button type="submit" id="go">Envoyer</button>
+          <button type="button" id="btn-mic" class="mic" title="Dicter" aria-label="Dicter">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M5 11a7 7 0 0 0 14 0M12 18v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <label class="sr-only" for="prompt">Consigne</label>
+          <textarea id="prompt" name="prompt" rows="1" placeholder="Écris ta consigne…" required></textarea>
+          <button type="submit" id="go" aria-label="Envoyer">
+            <span>Go</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
         </form>
         <p id="status" class="status" hidden></p>
       </section>
-    </div>
+    </main>
   </div>
   <script src="/app.js"></script>
 </body>

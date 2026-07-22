@@ -26,6 +26,10 @@ function assetUrl(path) {
   return apiUrl(path);
 }
 
+function markBusy() {
+  document.body.classList.add("busy");
+}
+
 function autoSize() {
   promptEl.style.height = "auto";
   promptEl.style.height = `${Math.min(promptEl.scrollHeight, 136)}px`;
@@ -80,18 +84,18 @@ function stamp() {
 
 function addRow({ role, text, fileUrl, modality }) {
   const el = document.createElement("article");
-  el.className = `row ${role === "you" ? "you" : "bot"}`;
+  el.className = `beat ${role === "you" ? "you" : "bot"}`;
 
-  const meta = document.createElement("div");
-  meta.className = "meta";
-  meta.innerHTML = `<span class="who">${role === "you" ? "Toi" : "AlfAhou"}</span><span class="when">${stamp()}</span>`;
-  el.appendChild(meta);
+  const cue = document.createElement("p");
+  cue.className = "cue";
+  cue.innerHTML = `<span>${role === "you" ? "Toi" : "AlfAhou"}</span><time>${stamp()}</time>`;
+  el.appendChild(cue);
 
-  const body = document.createElement("div");
-  body.className = "body" + (role === "bot" ? " md" : "");
-  if (role === "you") body.textContent = text || "";
-  else body.innerHTML = renderMarkdown(text || "");
-  el.appendChild(body);
+  const scene = document.createElement("div");
+  scene.className = "scene" + (role === "bot" ? " md" : "");
+  if (role === "you") scene.textContent = text || "";
+  else scene.innerHTML = renderMarkdown(text || "");
+  el.appendChild(scene);
 
   if (fileUrl && role === "bot") {
     const url = assetUrl(fileUrl);
@@ -115,15 +119,16 @@ function addRow({ role, text, fileUrl, modality }) {
   }
 
   threadEl.appendChild(el);
+  markBusy();
   el.scrollIntoView({ behavior: "smooth", block: "end" });
   return el;
 }
 
 function addTyping() {
   const el = document.createElement("article");
-  el.className = "row bot typing";
+  el.className = "beat bot typing";
   el.id = "typing";
-  el.innerHTML = `<div class="meta"><span class="who">AlfAhou</span><span class="when">…</span></div><div class="body"><span class="dots"><i></i><i></i><i></i></span></div>`;
+  el.innerHTML = `<p class="cue"><span>AlfAhou</span><time>…</time></p><div class="scene"><span class="dots"><i></i><i></i><i></i></span></div>`;
   threadEl.appendChild(el);
   el.scrollIntoView({ behavior: "smooth", block: "end" });
 }
@@ -180,11 +185,14 @@ btnReset.addEventListener("click", async () => {
   }
   sessionId = null;
   localStorage.removeItem("alfahou_session");
+  document.body.classList.remove("busy");
   threadEl.innerHTML = "";
   addRow({
     role: "bot",
-    text: "Nouvelle conversation. Dis-moi ce que tu veux créer ou comprendre.",
+    text: "Nouvelle scène. Dis-moi ce que tu veux créer ou comprendre.",
   });
+  document.body.classList.remove("busy");
+  threadEl.querySelector(".beat")?.classList.add("welcome");
   showSuggestions(["Bonjour", "Que sais-tu faire ?", "Fais un plan"]);
   setStatus("");
 });
@@ -217,6 +225,7 @@ form.addEventListener("submit", async (e) => {
   const modality = form.querySelector('input[name="modality"]:checked').value;
   const mode = modeEl.value;
 
+  markBusy();
   addRow({ role: "you", text: prompt });
   promptEl.value = "";
   autoSize();
