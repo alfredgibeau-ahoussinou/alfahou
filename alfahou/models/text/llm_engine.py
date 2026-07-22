@@ -91,6 +91,33 @@ def _clean_answer(text: str) -> str:
     return text.strip()
 
 
+def _hydrate_env_from_dotenv() -> None:
+    """Charge les clés multi-API depuis .env vers os.environ (hors préfixe ALFAHOU_)."""
+    path = settings.root / ".env"
+    if not path.exists():
+        return
+    wanted = {
+        "GROQ_API_KEY",
+        "OPENROUTER_API_KEY",
+        "HF_TOKEN",
+        "HUGGINGFACE_HUB_TOKEN",
+        "ALFAHOU_LLM_API_KEY",
+        "ALFAHOU_LLM_PROVIDER",
+        "ALFAHOU_LLM_MODEL",
+    }
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, v = line.split("=", 1)
+        k, v = k.strip(), v.strip().strip('"').strip("'")
+        if k in wanted and v:
+            os.environ[k] = v
+
+
+_hydrate_env_from_dotenv()
+
+
 def _keys() -> dict[str, str]:
     generic = (
         (settings.llm_api_key or "").strip()
