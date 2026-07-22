@@ -5,45 +5,118 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>AlfAhou</title>
   <meta name="description" content="AlfAhou — IA multimédia d’Alfred Ahoussinou" />
-  <meta name="theme-color" content="#F7F6F3" />
+  <meta name="theme-color" content="#060708" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Literata:opsz,wght@7..72,400;7..72,500;7..72,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;0,6..96,700;1,6..96,500;1,6..96,700&family=Syne:wght@600;700;800&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/styles.css" />
 </head>
-<body>
-  <a class="skip" href="#prompt">Aller à la saisie</a>
+<body data-view="intro">
+  <a class="skip" href="#prompt">Aller à l’atelier</a>
+  <div class="cursor" id="cursor" aria-hidden="true"><span></span></div>
+  <canvas id="field" class="field" aria-hidden="true"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
 
-  <div class="canvas" aria-hidden="true">
-    <div class="wash"></div>
-    <div class="mesh"></div>
-    <div class="noise"></div>
-  </div>
+  <div class="shell" id="app">
+    <!-- INTRO -->
+    <section class="view view-intro" id="view-intro" data-screen="intro">
+      <header class="intro-top">
+        <p class="sig">Alfred Ahoussinou</p>
+        <nav class="intro-nav">
+          <button type="button" class="nav-link" data-go="manifest">Manifeste</button>
+          <button type="button" class="nav-link" data-go="studio">Atelier</button>
+        </nav>
+      </header>
 
-  <div class="app" id="app">
-    <header class="bar">
-      <a class="logo" href="/" aria-label="AlfAhou accueil">AlfAhou</a>
-      <div class="bar-meta">
-        <p class="live" id="device" aria-live="polite">connexion…</p>
-        <div class="bar-actions">
-          <button type="button" id="btn-voice-out" class="text-btn" title="Lecture vocale">Voix</button>
-          <button type="button" id="btn-reset" class="text-btn">Nouveau</button>
-          <a class="text-btn" href="https://github.com/alfredgibeau-ahoussinou/alfahou" target="_blank" rel="noopener">Code</a>
+      <div class="intro-hero">
+        <p class="kicker"><span>Maison multimédia</span></p>
+        <h1 class="mega" id="mega" aria-label="AlfAhou">
+          <span class="mega-line" data-word="AlfAhou">AlfAhou</span>
+        </h1>
+        <p class="intro-copy">
+          Une intelligence qui écrit, illustre, filme et compose —
+          conçue comme un objet, pas comme un chat.
+        </p>
+        <div class="intro-cta">
+          <button type="button" class="btn-magnetic" id="enter-studio" data-go="studio">
+            <span class="btn-label">Entrer dans l’atelier</span>
+            <span class="btn-shine" aria-hidden="true"></span>
+          </button>
+          <button type="button" class="btn-ghost" data-go="manifest">Lire le manifeste</button>
         </div>
       </div>
-    </header>
 
-    <main class="stage">
-      <section class="hero" aria-labelledby="brand">
-        <p class="eyebrow">Alfred Ahoussinou</p>
-        <h1 id="brand" class="brand">AlfAhou</h1>
-        <p class="lede">Crée et discute — texte, image, vidéo, PDF. FR &amp; EN.</p>
-      </section>
+      <footer class="intro-foot">
+        <div class="ticker" aria-hidden="true">
+          <div class="ticker-track">
+            <span>Texte</span><span>·</span><span>Image</span><span>·</span><span>Vidéo</span><span>·</span><span>PDF</span><span>·</span>
+            <span>FR</span><span>·</span><span>EN</span><span>·</span>
+            <span>Texte</span><span>·</span><span>Image</span><span>·</span><span>Vidéo</span><span>·</span><span>PDF</span><span>·</span>
+            <span>FR</span><span>·</span><span>EN</span><span>·</span>
+          </div>
+        </div>
+      </footer>
+    </section>
 
-      <section class="work" aria-label="Conversation">
-        <div class="controls">
-          <label class="select">
-            <span class="label">Mode</span>
+    <!-- MANIFESTE -->
+    <section class="view view-manifest" id="view-manifest" data-screen="manifest" hidden>
+      <header class="page-top">
+        <button type="button" class="nav-link" data-go="intro">← Accueil</button>
+        <button type="button" class="btn-magnetic small" data-go="studio"><span class="btn-label">Atelier</span></button>
+      </header>
+      <div class="manifest-grid">
+        <div class="manifest-sticky">
+          <h2 class="manifest-title">Le manifeste</h2>
+          <p class="manifest-sub">AlfAhou n’est pas une coque d’API. C’est une maison.</p>
+        </div>
+        <div class="manifest-cards">
+          <article class="m-card" data-tilt>
+            <span class="m-num">01</span>
+            <h3>Présence</h3>
+            <p>Des réponses naturelles, directes, comme quelqu’un qui t’écoute vraiment.</p>
+          </article>
+          <article class="m-card" data-tilt>
+            <span class="m-num">02</span>
+            <h3>Matière</h3>
+            <p>Texte, image, vidéo, PDF — un même geste créatif, plusieurs matières.</p>
+          </article>
+          <article class="m-card" data-tilt>
+            <span class="m-num">03</span>
+            <h3>Signature</h3>
+            <p>Alfred + Ahoussinou. Une identité, pas un produit anonyme.</p>
+          </article>
+          <article class="m-card" data-tilt>
+            <span class="m-num">04</span>
+            <h3>Exigence</h3>
+            <p>Le détail compte : le rythme, la lumière, le silence entre deux phrases.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- STUDIO / CHAT -->
+    <section class="view view-studio" id="view-studio" data-screen="studio" hidden>
+      <header class="studio-top">
+        <div class="studio-brand">
+          <button type="button" class="logo-btn" data-go="intro" aria-label="Retour accueil">AlfAhou</button>
+          <p class="live" id="device">connexion…</p>
+        </div>
+        <div class="studio-actions">
+          <button type="button" class="nav-link" data-go="manifest">Manifeste</button>
+          <button type="button" id="btn-voice-out" class="nav-link" title="Lecture vocale">Voix</button>
+          <button type="button" id="btn-reset" class="nav-link">Nouveau</button>
+          <a class="nav-link" href="https://github.com/alfredgibeau-ahoussinou/alfahou" target="_blank" rel="noopener">Code</a>
+        </div>
+      </header>
+
+      <div class="studio-layout">
+        <aside class="studio-rail">
+          <p class="rail-eyebrow">Atelier</p>
+          <h2 class="rail-title">Créer<br />avec AlfAhou</h2>
+          <p class="rail-copy">Parle librement. Choisis une matière si tu veux — ou laisse Auto décider.</p>
+          <label class="field">
+            <span>Mode</span>
             <select id="mode">
               <option value="balanced">Équilibré</option>
               <option value="creative">Créatif</option>
@@ -51,49 +124,53 @@
               <option value="teacher">Prof</option>
             </select>
           </label>
-          <div class="seg" role="radiogroup" aria-label="Modalité">
-            <label class="seg-item"><input type="radio" name="modality" value="auto" form="composer" checked /><span>Auto</span></label>
-            <label class="seg-item"><input type="radio" name="modality" value="text" form="composer" /><span>Texte</span></label>
-            <label class="seg-item"><input type="radio" name="modality" value="image" form="composer" /><span>Image</span></label>
-            <label class="seg-item"><input type="radio" name="modality" value="video" form="composer" /><span>Vidéo</span></label>
-            <label class="seg-item"><input type="radio" name="modality" value="pdf" form="composer" /><span>PDF</span></label>
+          <div class="mods" role="radiogroup" aria-label="Modalité">
+            <label><input type="radio" name="modality" value="auto" form="composer" checked /><span>Auto</span></label>
+            <label><input type="radio" name="modality" value="text" form="composer" /><span>Texte</span></label>
+            <label><input type="radio" name="modality" value="image" form="composer" /><span>Image</span></label>
+            <label><input type="radio" name="modality" value="video" form="composer" /><span>Vidéo</span></label>
+            <label><input type="radio" name="modality" value="pdf" form="composer" /><span>PDF</span></label>
           </div>
+        </aside>
+
+        <div class="studio-main">
+          <div class="thread" id="thread" aria-live="polite">
+            <article class="turn bot welcome">
+              <header class="turn-head">
+                <span class="who">AlfAhou</span>
+                <time class="when">maintenant</time>
+              </header>
+              <div class="turn-body md">
+                <p>Bienvenue dans l’atelier. Dis-moi ce que tu veux — une idée, un texte, une image, une vidéo, un PDF.</p>
+              </div>
+            </article>
+          </div>
+
+          <div id="suggestions" class="suggest" hidden></div>
+
+          <form id="composer" class="composer" autocomplete="off">
+            <button type="button" id="btn-mic" class="icon-btn" title="Dicter" aria-label="Dicter">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M5 11a7 7 0 0 0 14 0M12 18v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </button>
+            <label class="sr-only" for="prompt">Message</label>
+            <textarea id="prompt" name="prompt" rows="1" placeholder="Écrire dans l’atelier…" required></textarea>
+            <button type="submit" id="go" class="send" aria-label="Envoyer">
+              <span>Envoyer</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </form>
+          <p id="status" class="status" role="status" hidden></p>
         </div>
-
-        <div class="thread" id="thread" aria-live="polite">
-          <article class="turn bot welcome">
-            <header class="turn-head">
-              <span class="who">AlfAhou</span>
-              <time class="when">maintenant</time>
-            </header>
-            <div class="turn-body md">
-              <p>Bonjour. Dis ce que tu veux créer ou comprendre — je réponds directement.</p>
-            </div>
-          </article>
-        </div>
-
-        <div id="suggestions" class="chips" hidden></div>
-
-        <form id="composer" class="composer" autocomplete="off">
-          <button type="button" id="btn-mic" class="icon-btn" title="Dicter" aria-label="Dicter">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z" stroke="currentColor" stroke-width="1.6"/>
-              <path d="M5 11a7 7 0 0 0 14 0M12 18v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-            </svg>
-          </button>
-          <label class="sr-only" for="prompt">Message</label>
-          <textarea id="prompt" name="prompt" rows="1" placeholder="Écrire un message…" required></textarea>
-          <button type="submit" id="go" class="send" aria-label="Envoyer">
-            <span>Envoyer</span>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-        </form>
-        <p id="status" class="status" role="status" hidden></p>
-      </section>
-    </main>
+      </div>
+    </section>
   </div>
+
+  <script src="/field.js"></script>
   <script src="/app.js"></script>
 </body>
 </html>

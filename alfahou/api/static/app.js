@@ -11,12 +11,122 @@ const deviceEl = document.getElementById("device");
 const btnReset = document.getElementById("btn-reset");
 const btnMic = document.getElementById("btn-mic");
 const btnVoiceOut = document.getElementById("btn-voice-out");
+const cursor = document.getElementById("cursor");
 
 let sessionId = localStorage.getItem("alfahou_session") || null;
 let lastBotText = "";
 let speakReplies = localStorage.getItem("alfahou_speak") === "1";
-if (speakReplies) btnVoiceOut.classList.add("listening");
+if (speakReplies) btnVoiceOut?.classList.add("listening");
 
+const isTouch =
+  window.matchMedia("(pointer: coarse)").matches ||
+  "ontouchstart" in window ||
+  navigator.maxTouchPoints > 0;
+if (isTouch) document.body.classList.add("touch-device");
+
+/* —— Routing multi-vues —— */
+const views = {
+  intro: document.getElementById("view-intro"),
+  manifest: document.getElementById("view-manifest"),
+  studio: document.getElementById("view-studio"),
+};
+
+function go(name, { push = true } = {}) {
+  const key = views[name] ? name : "intro";
+  Object.entries(views).forEach(([k, el]) => {
+    if (!el) return;
+    const on = k === key;
+    el.hidden = !on;
+    if (on) {
+      el.removeAttribute("hidden");
+      // reflow for animation
+      void el.offsetWidth;
+    }
+  });
+  document.body.dataset.view = key;
+  if (push) {
+    const hash = key === "intro" ? "" : `#${key}`;
+    if (location.hash.replace("#", "") !== (key === "intro" ? "" : key)) {
+      history.pushState({ view: key }, "", hash || location.pathname);
+    }
+  }
+  if (key === "studio") {
+    setTimeout(() => promptEl?.focus(), 350);
+  }
+  window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
+}
+
+function viewFromHash() {
+  const h = (location.hash || "").replace("#", "");
+  if (h === "studio" || h === "manifest") return h;
+  return "intro";
+}
+
+document.querySelectorAll("[data-go]").forEach((el) => {
+  el.addEventListener("click", (e) => {
+    e.preventDefault();
+    go(el.getAttribute("data-go"));
+  });
+});
+window.addEventListener("popstate", () => go(viewFromHash(), { push: false }));
+go(viewFromHash(), { push: false });
+
+/* —— Curseur custom —— */
+if (cursor && !isTouch && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  let x = window.innerWidth / 2;
+  let y = window.innerHeight / 2;
+  let cx = x;
+  let cy = y;
+  window.addEventListener("pointermove", (e) => {
+    x = e.clientX;
+    y = e.clientY;
+  });
+  const tick = () => {
+    cx += (x - cx) * 0.22;
+    cy += (y - cy) * 0.22;
+    cursor.style.transform = `translate3d(${cx}px, ${cy}px, 0)`;
+    requestAnimationFrame(tick);
+  };
+  tick();
+
+  const hoverSel = "a, button, label, select, textarea, .m-card, [data-go]";
+  document.addEventListener("pointerover", (e) => {
+    if (e.target.closest(hoverSel)) cursor.classList.add("hover");
+  });
+  document.addEventListener("pointerout", (e) => {
+    if (e.target.closest(hoverSel)) cursor.classList.remove("hover");
+  });
+}
+
+/* —— Boutons magnétiques —— */
+document.querySelectorAll(".btn-magnetic").forEach((btn) => {
+  btn.addEventListener("pointermove", (e) => {
+    if (isTouch) return;
+    const r = btn.getBoundingClientRect();
+    const dx = (e.clientX - (r.left + r.width / 2)) / (r.width / 2);
+    const dy = (e.clientY - (r.top + r.height / 2)) / (r.height / 2);
+    btn.style.transform = `translate(${dx * 6}px, ${dy * 5}px)`;
+  });
+  btn.addEventListener("pointerleave", () => {
+    btn.style.transform = "";
+  });
+});
+
+/* —— Cards tilt manifeste —— */
+document.querySelectorAll("[data-tilt]").forEach((card) => {
+  card.addEventListener("pointermove", (e) => {
+    if (isTouch) return;
+    const r = card.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width - 0.5;
+    const py = (e.clientY - r.top) / r.height - 0.5;
+    card.style.transform = `perspective(700px) rotateY(${px * 7}deg) rotateX(${-py * 7}deg) translateY(-2px)`;
+  });
+  card.addEventListener("pointerleave", () => {
+    card.style.transform = "";
+  });
+});
+
+/* —— Chat —— */
 function apiUrl(path) {
   return `${API_BASE}${path}`;
 }
@@ -25,17 +135,16 @@ function assetUrl(path) {
   if (path.startsWith("http")) return path;
   return apiUrl(path);
 }
-
 function markBusy() {
   document.body.classList.add("busy");
 }
-
 function autoSize() {
+  if (!promptEl) return;
   promptEl.style.height = "auto";
   promptEl.style.height = `${Math.min(promptEl.scrollHeight, 136)}px`;
 }
-promptEl.addEventListener("input", autoSize);
-promptEl.addEventListener("keydown", (e) => {
+promptEl?.addEventListener("input", autoSize);
+promptEl?.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
     form.requestSubmit();
@@ -43,14 +152,12 @@ promptEl.addEventListener("keydown", (e) => {
 });
 
 async function refreshHealth() {
+  if (!deviceEl) return;
   try {
     const res = await fetch(apiUrl("/api/health"));
     const data = await res.json();
     const llm = data.models && data.models.llm;
-    const llmBit =
-      llm && llm.enabled
-        ? ` · LLM ${llm.provider || "cloud"}`
-        : " · mode léger";
+    const llmBit = llm && llm.enabled ? ` · LLM ${llm.provider || "cloud"}` : " · mode léger";
     deviceEl.textContent = `${data.device} · en ligne${llmBit}`;
   } catch {
     deviceEl.textContent = "hors ligne";
@@ -58,6 +165,7 @@ async function refreshHealth() {
 }
 
 function setStatus(msg) {
+  if (!statusEl) return;
   statusEl.hidden = !msg;
   statusEl.textContent = msg || "";
 }
@@ -133,7 +241,9 @@ function addTyping() {
   const el = document.createElement("article");
   el.className = "turn bot typing";
   el.id = "typing";
-  el.innerHTML = `<header class="turn-head"><span class="who">AlfAhou</span><time class="when">…</time></header><div class="turn-body"><span class="dots"><i></i><i></i><i></i></span></div>`;
+  el.innerHTML =
+    `<header class="turn-head"><span class="who">AlfAhou</span><time class="when">…</time></header>` +
+    `<div class="turn-body"><span class="dots"><i></i><i></i><i></i></span></div>`;
   threadEl.appendChild(el);
   el.scrollIntoView({ behavior: "smooth", block: "end" });
 }
@@ -143,6 +253,7 @@ function removeTyping() {
 }
 
 function showSuggestions(items) {
+  if (!suggestionsEl) return;
   suggestionsEl.innerHTML = "";
   if (!items || !items.length) {
     suggestionsEl.hidden = true;
@@ -170,7 +281,7 @@ function speak(text) {
   window.speechSynthesis.speak(u);
 }
 
-btnVoiceOut.addEventListener("click", () => {
+btnVoiceOut?.addEventListener("click", () => {
   speakReplies = !speakReplies;
   localStorage.setItem("alfahou_speak", speakReplies ? "1" : "0");
   btnVoiceOut.classList.toggle("listening", speakReplies);
@@ -178,7 +289,7 @@ btnVoiceOut.addEventListener("click", () => {
   else window.speechSynthesis?.cancel();
 });
 
-btnReset.addEventListener("click", async () => {
+btnReset?.addEventListener("click", async () => {
   if (sessionId) {
     try {
       await fetch(apiUrl("/api/chat/reset"), {
@@ -212,9 +323,9 @@ if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
     promptEl.value = (promptEl.value ? promptEl.value + " " : "") + ev.results[0][0].transcript;
     autoSize();
   };
-  recognition.onend = () => btnMic.classList.remove("listening");
+  recognition.onend = () => btnMic?.classList.remove("listening");
 }
-btnMic.addEventListener("click", () => {
+btnMic?.addEventListener("click", () => {
   if (!recognition) {
     setStatus("Dictée non supportée sur ce navigateur.");
     return;
@@ -223,7 +334,7 @@ btnMic.addEventListener("click", () => {
   recognition.start();
 });
 
-form.addEventListener("submit", async (e) => {
+form?.addEventListener("submit", async (e) => {
   e.preventDefault();
   const prompt = promptEl.value.trim();
   if (!prompt) return;
@@ -281,4 +392,3 @@ form.addEventListener("submit", async (e) => {
 
 refreshHealth();
 showSuggestions(["Bonjour", "Que sais-tu faire ?", "Explique l’IA"]);
-promptEl.focus();
