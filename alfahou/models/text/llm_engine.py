@@ -40,22 +40,50 @@ class CloudLLM:
         self.base_url = (settings.llm_base_url or "").rstrip("/")
         self.timeout = settings.llm_timeout
         self._resolved: tuple[str, str, str] | None = None
+        self.last_error: str | None = None
 
     def _resolve(self) -> tuple[str, str, str] | None:
         if self._resolved is not None:
             return self._resolved if self._resolved[0] else None
 
         key = self.api_key
+        groq_key = os.environ.get("GROQ_API_KEY", "").strip()
+        hf_key = (
+            os.environ.get("HF_TOKEN", "").strip()
+            or os.environ.get("HUGGINGFACE_HUB_TOKEN", "").strip()
+            or (key if key.startswith("hf_") else "")
+        )
+        # Clé unique : détecter le type
+        if key.startswith("gsk_"):
+            groq_key = groq_key or key
+        if key.startswith("hf_"):
+            hf_key = hf_key or key
+        if key and not groq_key and not hf_key:
+            # clé générique selon provider demandé
+            if self.provider == "groq":
+                groq_key = key
+            else:
+                hf_key = key
+
         if self.provider == "ollama":
             base = self.base_url if self.base_url and "11434" in self.base_url else "http://127.0.0.1:11434/v1"
             model = self.model or "qwen2.5:3b"
             self._resolved = ("ollama", base, model)
             return self._resolved
 
-        if self.provider in {"hf", "huggingface"}:
-            if not key:
-                self._resolved = ("", "", "")
-                return None
+        # Préférer Groq (quota gratuit généreux) si disponible
+        if self.provider in {"groq", "auto"} and groq_key:
+            self.api_key = groq_key
+            model = self.model if self.provider == "groq" and self.model else "llama-3.3-70b-versatile"
+            if self.provider == "auto" and self.model and "llama" not in self.model.lower() and "groq" not in self.model.lower():
+                model = "llama-3.3-70b-versatile"
+            if self.provider == "auto":
+                model = "llama-3.3-70b-versatile"
+            self._resolved = ("groq", "https://api.groq.com/openai/v1", model)
+            return self._resolved
+
+        if self.provider in {"hf", "huggingface", "auto"} and hf_key:
+            self.api_key = hf_key
             base = (
                 self.base_url
                 if self.base_url and ("huggingface" in self.base_url or "hf.co" in self.base_url)
@@ -65,29 +93,9 @@ class CloudLLM:
             self._resolved = ("hf", base, model)
             return self._resolved
 
-        if self.provider == "groq":
-            if not key:
-                self._resolved = ("", "", "")
-                return None
-            base = self.base_url if self.base_url and "groq" in self.base_url else "https://api.groq.com/openai/v1"
-            model = self.model or "llama-3.3-70b-versatile"
-            self._resolved = ("groq", base, model)
-            return self._resolved
-
-        if key.startswith("gsk_"):
-            self._resolved = (
-                "groq",
-                "https://api.groq.com/openai/v1",
-                self.model or "llama-3.3-70b-versatile",
-            )
-            return self._resolved
-        if key:
-            self._resolved = (
-                "hf",
-                "https://router.huggingface.co/v1",
-                self.model or "meta-llama/Llama-3.1-8B-Instruct",
-            )
-            return self._resolved
+        if self.provider == "groq" and not groq_key:
+            self._resolved = ("", "", "")
+            return None
 
         try:
             urllib.request.urlopen("http://127.0.0.1:11434/api/tags", timeout=0.4)
@@ -107,9 +115,15 @@ class CloudLLM:
     def status(self) -> dict[str, Any]:
         resolved = self._resolve()
         if not resolved:
-            return {"enabled": False, "provider": None, "model": None}
+            return {"enabled": False, "provider": None, "model": None, "last_error": self.last_error}
         provider, base, model = resolved
-        return {"enabled": True, "provider": provider, "model": model, "base_url": base}
+        return {
+            "enabled": True,
+            "provider": provider,
+            "model": model,
+            "base_url": base,
+            "last_error": self.last_error,
+        }
 
     def _mode_hint(self, mode: str, lang: str) -> str:
         if mode == "creative":
@@ -178,14 +192,30 @@ class CloudLLM:
                 data = json.loads(resp.read().decode("utf-8"))
         except urllib.error.HTTPError as e:
             body = e.read().decode("utf-8", errors="replace")[:400]
-            raise RuntimeError(f"LLM HTTP {e.code}: {body}") from e
+            self.last_error = f"HTTP {e.code}: {body}"
+            # Si HF à court de crédits et qu’une clé Groq existe, bascule une fois
+            if e.code in {402, 429} and provider == "hf" and os.environ.get("GROQ_API_KEY", "").strip():
+                self._resolved = None
+                self.provider = "groq"
+                self.api_key = os.environ.get("GROQ_API_KEY", "").strip()
+                return self.chat(
+                    user_message=user_message,
+                    history=history,
+                    lang=lang,
+                    mode=mode,
+                    memory=memory,
+                )
+            raise RuntimeError(self.last_error) from e
         except Exception as e:
+            self.last_error = str(e)
             raise RuntimeError(f"LLM indisponible: {e}") from e
 
         try:
             text = data["choices"][0]["message"]["content"]
         except (KeyError, IndexError, TypeError) as e:
-            raise RuntimeError(f"Réponse LLM invalide: {str(data)[:300]}") from e
+            self.last_error = f"Réponse invalide: {str(data)[:300]}"
+            raise RuntimeError(self.last_error) from e
+        self.last_error = None
         return (text or "").strip() or None
 
 

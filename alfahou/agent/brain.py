@@ -137,6 +137,7 @@ class AlfAhouBrain:
                 memory=session.memory,
             )
         except Exception:
+            # Conservé dans llm.last_error pour /api/health
             return None
 
     def _conversational_basics(self, prompt: str, lang: str, session: Session) -> str | None:
