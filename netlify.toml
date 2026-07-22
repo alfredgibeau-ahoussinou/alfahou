@@ -1,6 +1,12 @@
 [build]
-  publish = "site"
-  command = "mkdir -p site && cp -R alfahou/api/static/* site/ && cp -f outputs/img_20260722_212850.png site/demo-image.png 2>/dev/null || true"
+  base = "web"
+  command = "npm ci && npm run build"
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
 
 [[headers]]
   for = "/*"
@@ -8,6 +14,3 @@
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-
-# Pas de proxy /api : Netlify coupe à ~26s (504).
-# Le front appelle directement https://alfahou.onrender.com

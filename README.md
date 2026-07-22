@@ -1,6 +1,14 @@
 # AlfAhou
 
-IA multimédia d’**Alfred Ahoussinou** — chat (LLM open-source cloud), images, vidéos et PDF.
+IA multimédia d’**Alfred Ahoussinou** — front React moderne + backend FastAPI + LLM open-source cloud.
+
+## Stack front (pointe)
+
+- **Vite 8** + **React 19** + **TypeScript**
+- **Tailwind CSS v4**
+- **Motion** (animations)
+- **React Router 7** (Accueil / Manifeste / Atelier)
+- Déployé sur **Netlify**
 
 ## Production
 
@@ -8,37 +16,25 @@ IA multimédia d’**Alfred Ahoussinou** — chat (LLM open-source cloud), image
 - **API** : [https://alfahou.onrender.com](https://alfahou.onrender.com)
 - **Code** : [github.com/alfredgibeau-ahoussinou/alfahou](https://github.com/alfredgibeau-ahoussinou/alfahou)
 
-## LLM open-source cloud (qualité type ChatGPT)
+## Dev front
 
-Le texte passe par un **modèle open-source hébergé** (Hugging Face Inference Providers, ou Groq), pas ChatGPT/Gemini propriétaires.
+```bash
+cd web
+npm install
+npm run dev
+```
 
-1. Crée un token gratuit : [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens) (permission *Inference Providers*)
-2. En local, copie `.env.example` → `.env` et mets `ALFAHOU_LLM_API_KEY=hf_...`
-3. Sur Render : ajoute la variable d’environnement `ALFAHOU_LLM_API_KEY` (ou `HF_TOKEN`)
-
-Défaut modèle : `meta-llama/Llama-3.1-8B-Instruct` via `https://router.huggingface.co/v1`.
-
-Sans clé : fallback conversation / skills locaux (mode léger).
-
-## Démarrage local
+## Dev API
 
 ```bash
 cd ~/Projects/alfahou
-python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env   # puis colle ton token HF
 uvicorn alfahou.api.app:app --reload --port 8787
 ```
 
-## Capacités
+## LLM
 
-| Module | Techno |
-|--------|--------|
-| Texte  | LLM open-source cloud (HF/Groq) + fallback |
-| Image  | Diffusion DDPM + UNet (maison) |
-| Vidéo  | Animation locale |
-| PDF    | ReportLab |
+Configurer `GROQ_API_KEY` ou `HF_TOKEN` / `ALFAHOU_LLM_API_KEY` (voir `.env.example`).
 
 ## Licence
 

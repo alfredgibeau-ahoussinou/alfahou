@@ -16,3 +16,5 @@ site/
 .mypy_cache/
 node_modules/
 .netlify/
+web/dist/
+web/node_modules/
