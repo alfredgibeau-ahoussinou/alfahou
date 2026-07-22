@@ -225,11 +225,21 @@ class AlfAhouBrain:
                 _persist(session)
                 return ChatResult(session.id, msg, "text", None, "video_error", self._suggestions(lang, "image"), lang)
             provider = getattr(self.video, "last_provider", None) or "cloud"
-            text = (
-                f"Voici la vidéo (via {provider})."
-                if lang == "fr"
-                else f"Here’s the video (via {provider})."
-            )
+            if provider.endswith("+motion"):
+                text = (
+                    "Voici une animation fluide à partir d’une image 16:9 "
+                    f"(via {provider}). Pour une vraie vidéo générative, les crédits "
+                    "OpenRouter vidéo sont nécessaires."
+                    if lang == "fr"
+                    else f"Here’s a smooth 16:9 image animation (via {provider}). "
+                    "True generative video needs OpenRouter video credits."
+                )
+            else:
+                text = (
+                    f"Voici la vidéo (via {provider})."
+                    if lang == "fr"
+                    else f"Here’s the video (via {provider})."
+                )
             file_url = f"/outputs/{Path(path).name}"
             session.add("assistant", text, modality="video", file_url=file_url)
             _persist(session)

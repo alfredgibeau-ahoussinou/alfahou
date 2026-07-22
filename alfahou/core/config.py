@@ -30,8 +30,8 @@ class Settings(BaseSettings):
     unet_base: int = 64
     text_cond_dim: int = 192
 
-    video_frames: int = 12
-    video_fps: int = 8
+    video_frames: int = 72
+    video_fps: int = 24
     pdf_with_image: bool = False
 
     # LLM multi-route (Groq + OpenRouter + HF…)

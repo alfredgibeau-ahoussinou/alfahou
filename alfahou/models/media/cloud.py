@@ -27,8 +27,8 @@ OR_IMAGE_MODELS = (
 )
 
 OR_VIDEO_MODELS = (
-    "google/veo-3.1-lite",
     "google/veo-3.1-fast",
+    "google/veo-3.1-lite",
     "alibaba/wan-2.6",
     "bytedance/seedance-2.0-fast",
 )
@@ -62,6 +62,19 @@ def clean_media_prompt(prompt: str) -> str:
         flags=re.I,
     )
     return t.strip(" .,:;") or prompt.strip()
+
+
+def cinematic_video_prompt(prompt: str) -> str:
+    """Enrichit le sujet pour les modèles vidéo / le still 16:9."""
+    subject = clean_media_prompt(prompt)
+    return (
+        f"{subject}. Cinematic 16:9 shot, natural coherent motion, stable subject, "
+        "photorealistic lighting, smooth camera, no morphing, no glitches, no text overlay."
+    )
+
+
+def _even(n: int) -> int:
+    return n if n % 2 == 0 else n + 1
 
 
 def _or_headers() -> dict[str, str]:
@@ -101,7 +114,12 @@ def openrouter_available() -> bool:
     return bool(os.environ.get("OPENROUTER_API_KEY", "").strip())
 
 
-def generate_image_openrouter(prompt: str, *, model: str | None = None) -> Path | None:
+def generate_image_openrouter(
+    prompt: str,
+    *,
+    model: str | None = None,
+    aspect_ratio: str = "1:1",
+) -> Path | None:
     if not openrouter_available():
         return None
     models = [model] if model else list(OR_IMAGE_MODELS)
@@ -115,7 +133,7 @@ def generate_image_openrouter(prompt: str, *, model: str | None = None) -> Path 
                 {
                     "model": mid,
                     "prompt": prompt,
-                    "aspect_ratio": "1:1",
+                    "aspect_ratio": aspect_ratio,
                 },
                 headers=_or_headers(),
                 timeout=150,
@@ -160,23 +178,28 @@ def generate_image_pollinations(prompt: str, *, width: int = 1024, height: int =
     return _save_bytes(raw, "img", ext)
 
 
-def generate_image(prompt: str) -> tuple[Path, str]:
+def generate_image(prompt: str, *, aspect_ratio: str = "1:1") -> tuple[Path, str]:
     """Retourne (path, provider)."""
     prompt = clean_media_prompt(prompt)
     # 1) OpenRouter si crédits
     if openrouter_available():
         try:
-            path = generate_image_openrouter(prompt)
+            path = generate_image_openrouter(prompt, aspect_ratio=aspect_ratio)
             if path:
                 return path, "openrouter"
         except Exception:
             pass
     # 2) Pollinations gratuit
-    path = generate_image_pollinations(prompt)
+    if aspect_ratio == "16:9":
+        path = generate_image_pollinations(prompt, width=1280, height=720)
+    elif aspect_ratio == "9:16":
+        path = generate_image_pollinations(prompt, width=720, height=1280)
+    else:
+        path = generate_image_pollinations(prompt)
     return path, "pollinations"
 
 
-def generate_video_openrouter(prompt: str, *, duration: int = 4) -> Path | None:
+def generate_video_openrouter(prompt: str, *, duration: int = 5) -> Path | None:
     if not openrouter_available():
         return None
     headers = _or_headers()
@@ -233,31 +256,70 @@ def generate_video_openrouter(prompt: str, *, duration: int = 4) -> Path | None:
     return None
 
 
-def animate_still_to_video(image_path: Path, *, frames: int = 24, fps: int = 10) -> Path:
-    """Ken Burns léger à partir d’une image cloud (fallback vidéo sans crédits)."""
+def _cover_crop_16x9(img):
+    """Recadre sans étirer pour un ratio 16:9 (évite les visages déformés)."""
+    sw, sh = img.size
+    target = 16 / 9
+    src = sw / sh if sh else target
+    if abs(src - target) < 0.02:
+        return img
+    if src > target:
+        new_w = max(1, int(sh * target))
+        left = (sw - new_w) // 2
+        return img.crop((left, 0, left + new_w, sh))
+    new_h = max(1, int(sw / target))
+    top = (sh - new_h) // 2
+    return img.crop((0, top, sw, top + new_h))
+
+
+def animate_still_to_video(
+    image_path: Path,
+    *,
+    frames: int | None = None,
+    fps: int | None = None,
+) -> Path:
+    """Ken Burns sobre : cover 16:9, zoom + pan monotones, sans pulse ni bounce."""
     import imageio.v2 as imageio
     import numpy as np
     from PIL import Image
 
-    img = Image.open(image_path).convert("RGB")
-    out_w, out_h = 768, 432
-    big = img.resize((960, 540), Image.Resampling.LANCZOS)
-    sw, sh = big.size
-    max_x = max(0, sw - out_w)
-    max_y = max(0, sh - out_h)
+    frames = frames if frames is not None else max(48, settings.video_frames)
+    fps = fps if fps is not None else max(24, settings.video_fps)
+
+    img = _cover_crop_16x9(Image.open(image_path).convert("RGB"))
+    # Multiples de 16 pour libx264 (évite le resize forcé d’imageio)
+    out_w, out_h = 1280, 720
+    # Marge pour un léger zoom avant (pas d’étirement)
+    scale = 1.12
+    big_w = _even(max(out_w + 2, int(out_w * scale)))
+    big_h = _even(max(out_h + 2, int(out_h * scale)))
+    # Aligner aussi sur 16 px
+    big_w = big_w - (big_w % 16)
+    big_h = big_h - (big_h % 16)
+    big = img.resize((big_w, big_h), Image.Resampling.LANCZOS)
+    max_x = max(0, big_w - out_w)
+    max_y = max(0, big_h - out_h)
+
     seq = []
     for i in range(frames):
         t = i / max(frames - 1, 1)
-        x = int(max_x * t)
-        y = int(max_y * (0.2 + 0.6 * abs(0.5 - t) * 2))
-        frame = big.crop((x, y, x + out_w, y + out_h))
-        arr = np.array(frame)
-        pulse = 0.97 + 0.03 * np.sin(2 * np.pi * t)
-        arr = np.clip(arr.astype(np.float32) * pulse, 0, 255).astype(np.uint8)
-        seq.append(arr)
+        # smoothstep : accélération / freinage naturels
+        e = t * t * (3.0 - 2.0 * t)
+        # Zoom progressif : fenêtre de crop qui se resserre vers le centre-droit
+        zoom = 1.0 + 0.1 * e
+        cw = min(big_w, int(out_w / zoom))
+        ch = min(big_h, int(out_h / zoom))
+        cw = max(out_w // 2, cw - (cw % 2))
+        ch = max(out_h // 2, ch - (ch % 2))
+        x = int((max_x * 0.15) + (max(0, big_w - cw) - max_x * 0.15) * e)
+        y = int(max(0, big_h - ch) * (0.4 + 0.2 * e))
+        x = max(0, min(x, big_w - cw))
+        y = max(0, min(y, big_h - ch))
+        frame = big.crop((x, y, x + cw, y + ch)).resize((out_w, out_h), Image.Resampling.LANCZOS)
+        seq.append(np.array(frame))
 
     out = settings.outputs_dir / f"vid_{_now_stamp()}.mp4"
-    # Baseline + yuv420p + faststart : lecture Safari / iOS fiable
+    settings.outputs_dir.mkdir(parents=True, exist_ok=True)
     try:
         imageio.mimsave(
             out,
@@ -265,7 +327,7 @@ def animate_still_to_video(image_path: Path, *, frames: int = 24, fps: int = 10)
             fps=fps,
             codec="libx264",
             pixelformat="yuv420p",
-            output_params=["-profile:v", "baseline", "-level", "3.0", "-movflags", "+faststart"],
+            output_params=["-profile:v", "main", "-level", "4.0", "-movflags", "+faststart"],
         )
     except TypeError:
         imageio.mimsave(out, seq, fps=fps)
@@ -273,16 +335,16 @@ def animate_still_to_video(image_path: Path, *, frames: int = 24, fps: int = 10)
 
 
 def generate_video(prompt: str) -> tuple[Path, str]:
-    prompt = clean_media_prompt(prompt)
+    video_prompt = cinematic_video_prompt(prompt)
     if openrouter_available():
         try:
-            path = generate_video_openrouter(prompt)
+            path = generate_video_openrouter(video_prompt)
             if path:
                 return path, "openrouter"
         except Exception:
             pass
-    # Fallback : image cloud + animation
-    still, img_provider = generate_image(prompt)
+    # Fallback : still 16:9 + Ken Burns sobre (pas d’étirement 1:1→16:9)
+    still, img_provider = generate_image(video_prompt, aspect_ratio="16:9")
     path = animate_still_to_video(still)
     return path, f"{img_provider}+motion"
 

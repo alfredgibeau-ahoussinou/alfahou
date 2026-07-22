@@ -73,7 +73,6 @@ export function MediaAttachment({ fileUrl, modality }: Props) {
           controls
           playsInline
           autoPlay
-          loop
           muted
           preload="metadata"
           onError={() => setBroken(true)}
