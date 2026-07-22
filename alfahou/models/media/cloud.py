@@ -257,7 +257,18 @@ def animate_still_to_video(image_path: Path, *, frames: int = 24, fps: int = 10)
         seq.append(arr)
 
     out = settings.outputs_dir / f"vid_{_now_stamp()}.mp4"
-    imageio.mimsave(out, seq, fps=fps)
+    # Baseline + yuv420p + faststart : lecture Safari / iOS fiable
+    try:
+        imageio.mimsave(
+            out,
+            seq,
+            fps=fps,
+            codec="libx264",
+            pixelformat="yuv420p",
+            output_params=["-profile:v", "baseline", "-level", "3.0", "-movflags", "+faststart"],
+        )
+    except TypeError:
+        imageio.mimsave(out, seq, fps=fps)
     return out
 
 

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState, type FormEvent, type MouseEve
 import { Link } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import {
-  assetUrl,
   createSession,
   deleteSession,
   fetchHealth,
@@ -17,6 +16,7 @@ import {
   type SessionSummary,
 } from "../lib/api";
 import { StreamingMarkdown } from "../components/StreamingMarkdown";
+import { MediaAttachment } from "../components/MediaAttachment";
 
 type Turn = {
   id: string;
@@ -567,45 +567,7 @@ export function StudioPage() {
                       />
                     )}
                     {t.fileUrl && t.role === "bot" && (
-                      <div className="mt-4">
-                        {(t.modality === "image" ||
-                          /\.(png|jpe?g|webp)$/i.test(t.fileUrl)) && (
-                          <img
-                            src={assetUrl(t.fileUrl)}
-                            alt="Image AlfAhou"
-                            className="block w-full max-w-[28rem] rounded-[var(--radius-md)] border border-white/10 bg-black"
-                          />
-                        )}
-                        {(t.modality === "video" || /\.mp4$/i.test(t.fileUrl)) && (
-                          <video
-                            src={assetUrl(t.fileUrl)}
-                            controls
-                            playsInline
-                            autoPlay
-                            loop
-                            muted
-                            className="block w-full max-w-[28rem] rounded-[var(--radius-md)] border border-white/10 bg-black"
-                          />
-                        )}
-                        {(t.modality === "pdf" || /\.pdf$/i.test(t.fileUrl)) && (
-                          <iframe
-                            title="PDF AlfAhou"
-                            src={assetUrl(t.fileUrl)}
-                            className="mt-1 h-[min(28rem,55vh)] w-full max-w-[28rem] rounded-[var(--radius-md)] border border-white/10 bg-[#f7f3eb]"
-                          />
-                        )}
-                        <p className="mt-2">
-                          <a
-                            href={assetUrl(t.fileUrl)}
-                            download
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-[0.72rem] tracking-[0.06em] text-[var(--color-foil)] uppercase"
-                          >
-                            Télécharger
-                          </a>
-                        </p>
-                      </div>
+                      <MediaAttachment fileUrl={t.fileUrl} modality={t.modality} />
                     )}
                   </motion.article>
                 ))}
