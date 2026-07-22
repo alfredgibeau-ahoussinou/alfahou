@@ -309,7 +309,7 @@ export function StudioPage() {
           <button
             type="button"
             onClick={() => setSidebarOpen((v) => !v)}
-            className="border border-white/15 px-3 py-2 text-[0.7rem] tracking-[0.12em] text-[var(--color-ink-dim)] uppercase hover:border-[var(--color-foil)] hover:text-[var(--color-ink)] lg:hidden"
+            className="rounded-[var(--radius-sm)] border border-white/15 px-3 py-2 text-[0.72rem] tracking-[0.1em] text-[var(--color-ink-dim)] uppercase hover:border-[var(--color-foil)] hover:text-[var(--color-ink)] lg:hidden"
             aria-expanded={sidebarOpen}
           >
             Historique
@@ -355,7 +355,7 @@ export function StudioPage() {
       <div className="mx-auto flex w-full max-w-[1280px] flex-1 gap-0 px-0 md:gap-6 md:px-[clamp(1rem,3vw,2rem)] md:pt-4 md:pb-6">
         {/* Sidebar conversations */}
         <aside
-          className={`fixed inset-y-0 left-0 z-30 flex w-[min(20rem,88vw)] flex-col border-r border-white/10 bg-[rgba(8,10,11,0.96)] pt-[3.6rem] backdrop-blur-xl transition-transform duration-300 lg:static lg:z-0 lg:w-[17.5rem] lg:shrink-0 lg:translate-x-0 lg:border lg:border-white/10 lg:bg-[rgba(13,16,18,0.55)] lg:pt-0 lg:backdrop-blur-md ${
+          className={`fixed inset-y-0 left-0 z-30 flex w-[min(20rem,88vw)] flex-col border-r border-white/10 bg-[rgba(8,10,11,0.96)] pt-[3.6rem] backdrop-blur-xl transition-transform duration-300 lg:static lg:z-0 lg:w-[17.5rem] lg:shrink-0 lg:translate-x-0 lg:rounded-[var(--radius-lg)] lg:border lg:border-white/10 lg:bg-[rgba(13,16,18,0.55)] lg:pt-0 lg:backdrop-blur-md ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
           }`}
         >
@@ -371,7 +371,7 @@ export function StudioPage() {
           </div>
           <div className="flex-1 overflow-y-auto p-2">
             {sessions.length === 0 && (
-              <p className="px-3 py-6 text-[0.85rem] font-light text-[var(--color-mute)]">
+              <p className="px-3 py-6 text-[0.9rem] leading-relaxed text-[var(--color-mute)]">
                 Aucune conversation pour l’instant. Envoie un message pour commencer.
               </p>
             )}
@@ -386,10 +386,10 @@ export function StudioPage() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") loadConversation(s.id);
                   }}
-                  className={`group mb-1 flex cursor-pointer items-start gap-2 rounded-sm border px-3 py-3 transition ${
+                  className={`group mb-1.5 flex cursor-pointer items-start gap-2 rounded-[var(--radius-md)] border px-3 py-3 transition ${
                     active
-                      ? "border-[var(--color-foil)]/50 bg-[rgba(212,184,150,0.08)]"
-                      : "border-transparent hover:border-white/10 hover:bg-white/[0.03]"
+                      ? "border-[var(--color-foil)]/45 bg-[rgba(212,184,150,0.1)]"
+                      : "border-transparent hover:border-white/10 hover:bg-white/[0.04]"
                   }`}
                 >
                   <div className="min-w-0 flex-1">
@@ -510,8 +510,8 @@ export function StudioPage() {
             </div>
           </div>
 
-          <section className="flex min-h-0 flex-1 flex-col gap-3 md:min-h-[calc(100dvh-8rem)] md:border md:border-white/10 md:bg-[rgba(13,16,18,0.45)] md:p-5 md:backdrop-blur-md">
-            <div ref={threadRef} className="flex flex-1 flex-col gap-7 overflow-y-auto py-2 md:min-h-[12rem] md:py-4">
+          <section className="flex min-h-0 flex-1 flex-col gap-3 md:min-h-[calc(100dvh-8rem)] md:rounded-[var(--radius-lg)] md:border md:border-white/10 md:bg-[rgba(13,16,18,0.45)] md:p-5 md:backdrop-blur-md">
+            <div ref={threadRef} className="flex flex-1 flex-col gap-6 overflow-y-auto py-2 md:min-h-[12rem] md:py-4">
               <AnimatePresence initial={false}>
                 {turns.map((t) => (
                   <motion.article
@@ -519,24 +519,24 @@ export function StudioPage() {
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                    className={`max-w-[38rem] ${t.role === "you" ? "max-w-none" : ""}`}
+                    className={`max-w-[40rem] ${t.role === "you" ? "ml-auto max-w-[min(36rem,100%)]" : ""}`}
                   >
                     <header className="mb-2 flex justify-between gap-4">
-                      <span className="text-[0.65rem] font-medium tracking-[0.16em] text-[var(--color-mute)] uppercase">
+                      <span className="text-[0.68rem] font-medium tracking-[0.12em] text-[var(--color-mute)] uppercase">
                         {t.role === "you" ? "Toi" : "AlfAhou"}
                       </span>
                       <time className="text-[0.72rem] text-[var(--color-mute)] tabular-nums">{t.when}</time>
                     </header>
                     {t.role === "you" ? (
-                      <div className="font-mega border-l border-[var(--color-foil)] pl-4 text-[clamp(1.2rem,3vw,1.55rem)] leading-snug italic">
+                      <div className="rounded-[var(--radius-md)] border border-[var(--color-foil)]/25 bg-[rgba(212,184,150,0.08)] px-4 py-3 text-[1.05rem] leading-[1.55] text-[var(--color-ink)]">
                         {t.text}
                       </div>
                     ) : (
                       <div
-                        className={`text-[0.98rem] leading-relaxed font-light text-[var(--color-ink-dim)] [&_p]:mb-3 [&_p:last-child]:mb-0 [&_strong]:font-medium [&_strong]:text-[var(--color-ink)] ${
+                        className={`rounded-[var(--radius-md)] border border-white/10 bg-white/[0.03] px-4 py-3.5 ${
                           t.welcome
-                            ? "font-mega max-w-[26ch] text-[clamp(1.15rem,2.8vw,1.45rem)] leading-snug text-[var(--color-ink)] italic"
-                            : ""
+                            ? "font-mega max-w-[28ch] border-transparent bg-transparent px-0 py-0 text-[clamp(1.15rem,2.8vw,1.4rem)] leading-snug text-[var(--color-ink)] italic"
+                            : "prose-chat"
                         }`}
                         dangerouslySetInnerHTML={{ __html: renderMarkdown(t.text) }}
                       />
@@ -549,7 +549,7 @@ export function StudioPage() {
                           <img
                             src={assetUrl(t.fileUrl)}
                             alt="Image AlfAhou"
-                            className="block w-full max-w-[28rem] border border-white/10 bg-black"
+                            className="block w-full max-w-[28rem] rounded-[var(--radius-md)] border border-white/10 bg-black"
                           />
                         )}
                         {(t.modality === "video" || t.fileUrl.endsWith(".mp4")) && (
@@ -558,7 +558,7 @@ export function StudioPage() {
                             controls
                             autoPlay
                             loop
-                            className="block w-full max-w-[28rem] border border-white/10 bg-black"
+                            className="block w-full max-w-[28rem] rounded-[var(--radius-md)] border border-white/10 bg-black"
                           />
                         )}
                         <p className="mt-2">
@@ -567,7 +567,7 @@ export function StudioPage() {
                             download
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-[0.68rem] tracking-[0.08em] text-[var(--color-foil)] uppercase"
+                            className="text-[0.72rem] tracking-[0.06em] text-[var(--color-foil)] uppercase"
                           >
                             Télécharger
                           </a>
@@ -600,7 +600,7 @@ export function StudioPage() {
                     key={s}
                     type="button"
                     onClick={() => onSubmit(undefined, s)}
-                    className="border border-white/15 bg-transparent px-3 py-2 text-[0.78rem] text-[var(--color-ink-dim)] transition hover:border-[var(--color-foil)] hover:text-[var(--color-ink)]"
+                    className="rounded-[var(--radius-md)] border border-white/15 bg-white/[0.03] px-3.5 py-2 text-[0.84rem] text-[var(--color-ink-dim)] transition hover:border-[var(--color-foil)] hover:text-[var(--color-ink)]"
                   >
                     {s}
                   </button>
@@ -612,7 +612,7 @@ export function StudioPage() {
               onSubmit={onSubmit}
               className="fixed right-0 bottom-0 left-0 z-40 grid grid-cols-[1fr_auto] items-end gap-1.5 bg-[linear-gradient(180deg,transparent,rgba(6,7,8,0.95)_32%)] px-[clamp(1rem,3vw,1.5rem)] pt-3 pb-[calc(0.7rem+env(safe-area-inset-bottom))] md:relative md:bg-none md:px-0 md:pt-2 md:pb-0"
             >
-              <div className="pointer-events-none absolute inset-x-[clamp(1rem,3vw,1.5rem)] inset-y-2 border border-white/15 bg-[rgba(13,16,18,0.82)] backdrop-blur-xl md:inset-0" />
+              <div className="pointer-events-none absolute inset-x-[clamp(1rem,3vw,1.5rem)] inset-y-2 rounded-[var(--radius-lg)] border border-white/15 bg-[rgba(13,16,18,0.88)] backdrop-blur-xl md:inset-0" />
               <textarea
                 ref={taRef}
                 value={prompt}
@@ -629,12 +629,12 @@ export function StudioPage() {
                 rows={1}
                 required
                 placeholder="Écrire dans l’atelier…"
-                className="relative z-10 min-h-[2.75rem] max-h-32 w-full resize-none border-0 bg-transparent py-3.5 pl-4 text-[1rem] leading-relaxed font-light text-[var(--color-ink)] outline-none placeholder:text-[var(--color-mute)]"
+                className="relative z-10 min-h-[2.75rem] max-h-32 w-full resize-none border-0 bg-transparent py-3.5 pl-4 text-[1.02rem] leading-relaxed text-[var(--color-ink)] outline-none placeholder:text-[var(--color-mute)]"
               />
               <button
                 type="submit"
                 disabled={busy}
-                className="relative z-10 m-1.5 inline-flex min-h-[2.75rem] items-center gap-2 bg-[var(--color-ink)] px-4 text-[0.68rem] font-semibold tracking-[0.12em] text-[var(--color-bg)] uppercase transition hover:bg-[var(--color-foil)] disabled:opacity-40"
+                className="relative z-10 m-1.5 inline-flex min-h-[2.75rem] items-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-ink)] px-4 text-[0.72rem] font-semibold tracking-[0.1em] text-[var(--color-bg)] uppercase transition hover:bg-[var(--color-foil)] disabled:opacity-40"
               >
                 <span className="hidden sm:inline">Envoyer</span>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>

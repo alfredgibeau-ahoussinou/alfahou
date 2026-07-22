@@ -49,7 +49,7 @@ export function IntroPage() {
           initial={{ opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-7 max-w-[34ch] text-[clamp(1.05rem,2.4vw,1.25rem)] leading-relaxed font-light text-[var(--color-ink-dim)]"
+          className="mt-7 max-w-[38ch] text-[clamp(1.08rem,2.4vw,1.28rem)] leading-[1.65] text-[var(--color-ink-dim)]"
         >
           Une intelligence qui écrit, illustre, filme et compose — conçue comme un objet, pas comme
           un chat.

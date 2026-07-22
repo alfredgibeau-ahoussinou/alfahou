@@ -59,11 +59,11 @@ function TiltCard({
       transition={{ delay: 0.1 + i * 0.08, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
       onMouseMove={onMove}
       onMouseLeave={onLeave}
-      className="border border-white/10 bg-[rgba(13,16,18,0.55)] p-6 backdrop-blur-md transition-[border-color,background] duration-400 hover:border-[var(--color-foil)] hover:bg-[rgba(20,24,26,0.75)]"
+      className="rounded-[var(--radius-md)] border border-white/10 bg-[rgba(13,16,18,0.55)] p-6 backdrop-blur-md transition-[border-color,background] duration-400 hover:border-[var(--color-foil)] hover:bg-[rgba(20,24,26,0.75)]"
     >
       <span className="mb-4 block text-[0.7rem] tracking-[0.18em] text-[var(--color-foil)]">{n}</span>
       <h3 className="font-brand mb-2 text-[1.35rem] font-bold tracking-[-0.03em]">{title}</h3>
-      <p className="text-[0.95rem] leading-relaxed font-light text-[var(--color-ink-dim)]">{body}</p>
+      <p className="text-[1rem] leading-[1.65] text-[var(--color-ink-dim)]">{body}</p>
     </motion.article>
   );
 }
@@ -93,7 +93,7 @@ export function ManifestPage() {
           >
             Le manifeste
           </motion.h2>
-          <p className="mt-5 max-w-[28ch] text-[1.05rem] leading-relaxed font-light text-[var(--color-ink-dim)]">
+          <p className="mt-5 max-w-[32ch] text-[1.08rem] leading-[1.65] text-[var(--color-ink-dim)]">
             AlfAhou n’est pas une coque d’API. C’est une maison.
           </p>
         </div>

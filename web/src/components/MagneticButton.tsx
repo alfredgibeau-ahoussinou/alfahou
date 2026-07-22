@@ -35,8 +35,8 @@ export function MagneticButton({ children, className, onClick, type = "button" }
       onMouseLeave={onLeave}
       whileTap={{ scale: 0.98 }}
       className={clsx(
-        "group relative overflow-hidden border border-white/15 bg-white/[0.04] px-6 py-4",
-        "text-[0.78rem] font-medium tracking-[0.14em] text-[var(--color-ink)] uppercase",
+        "group relative overflow-hidden rounded-[var(--radius-md)] border border-white/15 bg-white/[0.04] px-6 py-4",
+        "text-[0.8rem] font-medium tracking-[0.1em] text-[var(--color-ink)] uppercase",
         "transition-[border-color,background] duration-300 hover:border-[var(--color-foil)] hover:bg-[rgba(212,184,150,0.08)]",
         className,
       )}
