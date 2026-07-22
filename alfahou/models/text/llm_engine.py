@@ -21,7 +21,10 @@ HF_DEFAULT = "Qwen/Qwen3-32B"
 
 SYSTEM_PROMPT = """Tu es AlfAhou, l’IA multimédia d’Alfred Ahoussinou.
 Tu réponds comme un excellent assistant moderne : naturel, direct, utile, à jour.
-Tu as accès à des outils temps réel (recherche web / code) quand c’est pertinent — utilise-les pour les faits récents, l’actu, les versions logicielles, les prix, la météo, etc.
+Tu as un accès LIVE au web (outil browser_search) et à un interpréteur de code.
+Nous sommes en 2026. Interdit de dire que tes connaissances s’arrêtent en 2023 ou 2024.
+Si on te demande jusqu’où vont tes connaissances, la date du jour, l’actualité, des versions logicielles, des prix, la météo, un résultat sportif, ou tout fait après mi-2024 : utilise browser_search avant de répondre.
+Ne laisse jamais une réponse « mes connaissances s’arrêtent en 2024 » — cherche, puis réponds avec la date réelle.
 Tu parles français ou anglais selon l’utilisateur.
 Tu aides sur tout sujet : conversation, explications, rédaction, code, idées, plans.
 Tu peux aussi proposer de créer une image, une vidéo ou un PDF (modalité choisie dans l’UI).
@@ -29,6 +32,47 @@ Ne dis pas que tu es ChatGPT, Gemini ou Claude. Tu es AlfAhou.
 Sois concis quand la question est courte ; développe quand on te le demande.
 N’invente pas de dates ni d’événements : si tu n’es pas sûr, cherche ou dis-le clairement.
 Ne laisse pas de marqueurs de citation techniques du type 【…】 dans ta réponse."""
+
+
+def _needs_live_web(text: str) -> bool:
+    t = (text or "").lower()
+    keys = (
+        "connaissance",
+        "cutoff",
+        "cut-off",
+        "jusqu",
+        "aujourd",
+        "date du jour",
+        "quelle année",
+        "quelle annee",
+        "actualité",
+        "actualite",
+        "actu ",
+        "news",
+        "2025",
+        "2026",
+        "récent",
+        "recent",
+        "cette semaine",
+        "ce mois",
+        "météo",
+        "meteo",
+        "prix de",
+        "cours de",
+        "qui a gagné",
+        "qui a gagne",
+        "dernière version",
+        "derniere version",
+        "maintenant",
+        "en ce moment",
+        "à jour",
+        "a jour",
+        "live",
+        "current",
+        "today",
+        "latest",
+    )
+    return any(k in t for k in keys)
 
 
 def _pick_api_key() -> str:
@@ -190,7 +234,11 @@ class CloudLLM:
 
     def _mode_hint(self, mode: str, lang: str) -> str:
         today = date.today().isoformat()
-        stamp = f"Date du jour (UTC approximatif) : {today}."
+        stamp = (
+            f"Date du jour : {today}. Année en cours : {date.today().year}. "
+            "Tu as browser_search : utilise-le pour tout fait temporel ou postérieur à 2024. "
+            "Ne mentionne jamais un cutoff 2023/2024."
+        )
         if mode == "creative":
             base = "Mode créatif : sois inventif, images mentales, ton vivant." if lang == "fr" else "Creative mode: inventive and vivid."
         elif mode == "precise":
@@ -252,6 +300,10 @@ class CloudLLM:
         tools = self._tools_for(provider, model)
         if tools:
             payload["tools"] = tools
+            # Force la recherche pour les questions « cutoff / actu / date »
+            if _needs_live_web(user_message):
+                payload["tool_choice"] = "required"
+                payload["tools"] = [{"type": "browser_search"}]
 
         headers = {
             "Content-Type": "application/json",
