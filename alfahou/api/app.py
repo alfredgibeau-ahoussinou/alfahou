@@ -62,6 +62,27 @@ class ResetRequest(BaseModel):
     session_id: str
 
 
+class CreateSessionRequest(BaseModel):
+    title: str | None = None
+    mode: str = Field("balanced", pattern="^(balanced|creative|precise|teacher)$")
+    language: str = Field("fr", pattern="^(fr|en)$")
+
+
+class RenameSessionRequest(BaseModel):
+    title: str = Field(..., min_length=1, max_length=80)
+
+
+class UpsertSessionRequest(BaseModel):
+    messages: list[dict] = Field(default_factory=list)
+    title: str | None = None
+    mode: str | None = None
+    language: str | None = None
+
+
+class ListSessionsRequest(BaseModel):
+    ids: list[str] = Field(default_factory=list)
+
+
 @app.get("/api/health")
 def health():
     c = get_chat()
@@ -95,6 +116,7 @@ def chat(req: ChatRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur AlfAhou: {e}") from e
 
+    session = STORE.get(result.session_id)
     return {
         "session_id": result.session_id,
         "modality": result.modality,
@@ -103,6 +125,7 @@ def chat(req: ChatRequest):
         "skill": result.skill,
         "suggestions": result.suggestions or [],
         "language": result.language,
+        "title": session.title if session else None,
         "message": "ok",
     }
 
@@ -110,7 +133,56 @@ def chat(req: ChatRequest):
 @app.post("/api/chat/reset")
 def chat_reset(req: ResetRequest):
     s = STORE.reset(req.session_id)
-    return {"session_id": s.id, "ok": True}
+    return {"session_id": s.id, "ok": True, "title": s.title}
+
+
+@app.post("/api/chat/sessions")
+def create_session(req: CreateSessionRequest):
+    s = STORE.create(title=req.title, mode=req.mode, language=req.language)
+    return s.to_dict()
+
+
+@app.post("/api/chat/sessions/list")
+def list_sessions(req: ListSessionsRequest):
+    """Liste les conversations dont les ids appartiennent au client."""
+    items = STORE.list_sessions(ids=req.ids)
+    return {"sessions": items}
+
+
+@app.get("/api/chat/sessions/{session_id}")
+def get_session(session_id: str):
+    s = STORE.get(session_id)
+    if not s:
+        raise HTTPException(status_code=404, detail="Conversation introuvable")
+    return s.to_dict()
+
+
+@app.put("/api/chat/sessions/{session_id}")
+def upsert_session(session_id: str, req: UpsertSessionRequest):
+    s = STORE.upsert_messages(
+        session_id,
+        req.messages,
+        title=req.title,
+        mode=req.mode,
+        language=req.language,
+    )
+    return s.to_dict()
+
+
+@app.patch("/api/chat/sessions/{session_id}")
+def rename_session(session_id: str, req: RenameSessionRequest):
+    s = STORE.rename(session_id, req.title)
+    if not s:
+        raise HTTPException(status_code=404, detail="Conversation introuvable")
+    return {"id": s.id, "title": s.title, "ok": True}
+
+
+@app.delete("/api/chat/sessions/{session_id}")
+def delete_session(session_id: str):
+    ok = STORE.delete(session_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Conversation introuvable")
+    return {"ok": True, "id": session_id}
 
 
 @app.post("/api/generate")

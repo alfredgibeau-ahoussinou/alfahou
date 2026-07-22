@@ -10,6 +10,8 @@ outputs/*
 !outputs/img_20260722_212850.png
 data/raw/*
 !data/raw/.gitkeep
+data/sessions/*
+!data/sessions/.gitkeep
 site/
 *.log
 .pytest_cache/

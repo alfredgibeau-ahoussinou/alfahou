@@ -16,6 +16,10 @@ from alfahou.models.video.engine import VideoEngine
 from alfahou.orchestrator.agent import Modality
 
 
+def _persist(session: Session) -> None:
+    STORE.save(session)
+
+
 @dataclass
 class ChatResult:
     session_id: str
@@ -194,6 +198,7 @@ class AlfAhouBrain:
             text = "Voici l’image." if lang == "fr" else "Here’s the image."
             file_url = f"/outputs/{Path(path).name}"
             session.add("assistant", text, modality="image", file_url=file_url)
+            _persist(session)
             return ChatResult(session.id, text, "image", file_url, "image", self._suggestions(lang, "image"), lang)
 
         if kind == Modality.VIDEO:
@@ -201,6 +206,7 @@ class AlfAhouBrain:
             text = "Voici la vidéo." if lang == "fr" else "Here’s the video."
             file_url = f"/outputs/{Path(path).name}"
             session.add("assistant", text, modality="video", file_url=file_url)
+            _persist(session)
             return ChatResult(session.id, text, "video", file_url, "video", self._suggestions(lang, "image"), lang)
 
         if kind == Modality.PDF:
@@ -209,24 +215,28 @@ class AlfAhouBrain:
             path = self.pdf.generate(title=title, body=body, image_path=None)
             file_url = f"/outputs/{Path(path).name}"
             session.add("assistant", body, modality="pdf", file_url=file_url)
+            _persist(session)
             return ChatResult(session.id, body, "pdf", file_url, "pdf", self._suggestions(lang, "plan"), lang)
 
         # Maths / heure : moteur local exact
         if self._exact_local_skill(prompt):
             text, skill = run_text_skill(prompt, lang, session.mode, session.memory)
             session.add("assistant", text)
+            _persist(session)
             return ChatResult(session.id, text, "text", None, skill, self._suggestions(lang, skill), lang)
 
         # Chemin principal : LLM open-source cloud
         llm_text = self._llm_reply(prompt, lang, session)
         if llm_text:
             session.add("assistant", llm_text)
+            _persist(session)
             return ChatResult(session.id, llm_text, "text", None, "llm", self._suggestions(lang, "llm"), lang)
 
         # Fallback sans clé / hors ligne
         basic = self._conversational_basics(prompt, lang, session)
         if basic:
             session.add("assistant", basic)
+            _persist(session)
             return ChatResult(session.id, basic, "text", None, "chat", self._suggestions(lang, "general"), lang)
 
         text, skill = run_text_skill(prompt, lang, session.mode, session.memory)
@@ -235,4 +245,5 @@ class AlfAhouBrain:
             if prev and prev.lower() != prompt.lower():
                 text, skill = run_text_skill(f"explique {prev}", lang, session.mode, session.memory)
         session.add("assistant", text)
+        _persist(session)
         return ChatResult(session.id, text, "text", None, skill, self._suggestions(lang, skill), lang)
