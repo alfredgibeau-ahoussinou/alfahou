@@ -222,7 +222,8 @@ form.addEventListener("submit", async (e) => {
   e.preventDefault();
   const prompt = promptEl.value.trim();
   if (!prompt) return;
-  const modality = form.querySelector('input[name="modality"]:checked').value;
+  const modalityEl = document.querySelector('input[name="modality"]:checked');
+  const modality = modalityEl ? modalityEl.value : "auto";
   const mode = modeEl.value;
 
   markBusy();
