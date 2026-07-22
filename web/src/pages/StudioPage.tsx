@@ -16,6 +16,7 @@ import {
   type Mode,
   type SessionSummary,
 } from "../lib/api";
+import { StreamingMarkdown } from "../components/StreamingMarkdown";
 
 type Turn = {
   id: string;
@@ -25,6 +26,8 @@ type Turn = {
   modality?: string;
   when: string;
   welcome?: boolean;
+  /** Animer l’apparition (nouvelles réponses seulement) */
+  stream?: boolean;
 };
 
 function stamp(iso?: string) {
@@ -39,23 +42,6 @@ function formatDay(iso: string) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
   return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
-}
-
-function renderMarkdown(text: string) {
-  let html = text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-  html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, (_, _l, code) => `<pre><code>${code.trim()}</code></pre>`);
-  html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
-  html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-  html = html.replace(/^(?:- |\* )(.+)$/gm, "<li>$1</li>");
-  html = html.replace(/(?:^|\n)(\d+)\. (.+)$/gm, "<li>$2</li>");
-  html = html.replace(/(<li>.*<\/li>\n?)+/g, (m) => `<ul>${m}</ul>`);
-  html = html.replace(/\n\n/g, "</p><p>");
-  html = html.replace(/\n/g, "<br>");
-  return `<p>${html}</p>`;
 }
 
 const MODS: { value: Modality; label: string }[] = [
@@ -257,6 +243,7 @@ export function StudioPage() {
       if (data.title) setCurrentTitle(data.title);
       setTyping(false);
       setLastBot(data.text || "");
+      setSuggestions(data.suggestions || []);
       setTurns((t) => [
         ...t,
         {
@@ -266,10 +253,9 @@ export function StudioPage() {
           fileUrl: data.file_url,
           modality: data.modality,
           when: stamp(),
+          stream: true,
         },
       ]);
-      setSuggestions(data.suggestions || []);
-      speakText(data.text || "");
       await refreshSessions();
     } catch (err) {
       setTyping(false);
@@ -279,7 +265,7 @@ export function StudioPage() {
           : err instanceof Error
             ? err.message
             : "Je n’ai pas pu répondre.";
-      setTurns((t) => [...t, { id: crypto.randomUUID(), role: "bot", text: msg, when: stamp() }]);
+      setTurns((t) => [...t, { id: crypto.randomUUID(), role: "bot", text: msg, when: stamp(), stream: true }]);
       setStatus(msg);
     } finally {
       setBusy(false);
@@ -290,6 +276,21 @@ export function StudioPage() {
       });
     }
   };
+
+  const onStreamDone = useCallback((id: string, fullText: string) => {
+    setTurns((prev) => prev.map((t) => (t.id === id ? { ...t, stream: false } : t)));
+    speakText(fullText);
+    requestAnimationFrame(() => {
+      threadRef.current?.lastElementChild?.scrollIntoView({ behavior: "smooth", block: "end" });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- speakText depends on speak
+  }, [speak]);
+
+  const scrollThread = useCallback(() => {
+    const el = threadRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }, []);
 
   const onDelete = async (id: string, e: MouseEvent) => {
     e.stopPropagation();
@@ -532,13 +533,16 @@ export function StudioPage() {
                         {t.text}
                       </div>
                     ) : (
-                      <div
+                      <StreamingMarkdown
+                        text={t.text}
+                        animate={!!t.stream && !t.welcome}
+                        onDone={() => onStreamDone(t.id, t.text)}
+                        onProgress={scrollThread}
                         className={`rounded-[var(--radius-md)] border border-white/10 bg-white/[0.03] px-4 py-3.5 ${
                           t.welcome
                             ? "font-mega max-w-[28ch] border-transparent bg-transparent px-0 py-0 text-[clamp(1.15rem,2.8vw,1.4rem)] leading-snug text-[var(--color-ink)] italic"
                             : "prose-chat"
                         }`}
-                        dangerouslySetInnerHTML={{ __html: renderMarkdown(t.text) }}
                       />
                     )}
                     {t.fileUrl && t.role === "bot" && (
