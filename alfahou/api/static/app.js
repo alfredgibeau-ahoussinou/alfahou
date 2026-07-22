@@ -7,7 +7,9 @@ const threadEl = document.getElementById("thread");
 const goBtn = document.getElementById("go");
 const modeEl = document.getElementById("mode");
 const suggestionsEl = document.getElementById("suggestions");
+const deviceEl = document.getElementById("device");
 const btnReset = document.getElementById("btn-reset");
+const btnResetM = document.getElementById("btn-reset-m");
 const btnMic = document.getElementById("btn-mic");
 const btnVoiceOut = document.getElementById("btn-voice-out");
 
@@ -27,7 +29,7 @@ function assetUrl(path) {
 
 function autoSize() {
   promptEl.style.height = "auto";
-  promptEl.style.height = `${Math.min(promptEl.scrollHeight, 110)}px`;
+  promptEl.style.height = `${Math.min(promptEl.scrollHeight, 144)}px`;
 }
 promptEl.addEventListener("input", autoSize);
 promptEl.addEventListener("keydown", (e) => {
@@ -36,6 +38,16 @@ promptEl.addEventListener("keydown", (e) => {
     form.requestSubmit();
   }
 });
+
+async function refreshHealth() {
+  try {
+    const res = await fetch(apiUrl("/api/health"));
+    const data = await res.json();
+    if (deviceEl) deviceEl.textContent = `${data.device} · en ligne`;
+  } catch {
+    if (deviceEl) deviceEl.textContent = "hors ligne";
+  }
+}
 
 function setStatus(msg) {
   statusEl.hidden = !msg;
@@ -63,12 +75,19 @@ function renderMarkdown(text) {
   return `<p>${html}</p>`;
 }
 
-function addBubble({ role, text, fileUrl, modality }) {
+function addMessage({ role, text, fileUrl, modality }) {
   const el = document.createElement("article");
-  el.className = `bubble ${role === "you" ? "you" : "bot"}`;
+  el.className = `msg ${role === "you" ? "you" : "bot"}`;
+
+  const label = document.createElement("p");
+  label.className = "msg-label";
+  label.textContent = role === "you" ? "Toi" : "AlfAhou";
+  el.appendChild(label);
 
   if (role === "you") {
-    el.textContent = text || "";
+    const body = document.createElement("div");
+    body.textContent = text || "";
+    el.appendChild(body);
   } else {
     const body = document.createElement("div");
     body.className = "md";
@@ -103,9 +122,9 @@ function addBubble({ role, text, fileUrl, modality }) {
 
 function addTyping() {
   const el = document.createElement("article");
-  el.className = "bubble bot typing";
+  el.className = "msg bot typing";
   el.id = "typing";
-  el.innerHTML = `<span class="dots" aria-label="écrit"><i></i><i></i><i></i></span>`;
+  el.innerHTML = `<i></i><i></i><i></i>`;
   threadEl.appendChild(el);
   el.scrollIntoView({ behavior: "smooth", block: "end" });
 }
@@ -150,7 +169,7 @@ btnVoiceOut.addEventListener("click", () => {
   else window.speechSynthesis?.cancel();
 });
 
-btnReset.addEventListener("click", async () => {
+async function resetChat() {
   if (sessionId) {
     try {
       await fetch(apiUrl("/api/chat/reset"), {
@@ -162,14 +181,17 @@ btnReset.addEventListener("click", async () => {
   }
   sessionId = null;
   localStorage.removeItem("alfahou_session");
-  threadEl.innerHTML = `<p class="day-stamp">Aujourd’hui</p>`;
-  addBubble({
+  threadEl.innerHTML = "";
+  addMessage({
     role: "bot",
-    text: "Nouvelle conversation. Dis-moi ce que tu veux ✨",
+    text: "Nouvelle conversation. Dis-moi ce que tu veux créer ou comprendre.",
   });
   showSuggestions(["Bonjour", "Que sais-tu faire ?", "Fais un plan"]);
   setStatus("");
-});
+}
+
+btnReset?.addEventListener("click", resetChat);
+btnResetM?.addEventListener("click", resetChat);
 
 let recognition = null;
 if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
@@ -186,7 +208,7 @@ if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
 }
 btnMic.addEventListener("click", () => {
   if (!recognition) {
-    setStatus("Dictée non supportée ici.");
+    setStatus("Dictée non supportée sur ce navigateur.");
     return;
   }
   btnMic.classList.add("listening");
@@ -200,7 +222,7 @@ form.addEventListener("submit", async (e) => {
   const modality = form.querySelector('input[name="modality"]:checked').value;
   const mode = modeEl.value;
 
-  addBubble({ role: "you", text: prompt });
+  addMessage({ role: "you", text: prompt });
   promptEl.value = "";
   autoSize();
   goBtn.disabled = true;
@@ -229,7 +251,7 @@ form.addEventListener("submit", async (e) => {
     localStorage.setItem("alfahou_session", sessionId);
     removeTyping();
     lastBotText = data.text || "";
-    addBubble({
+    addMessage({
       role: "bot",
       text: data.text,
       fileUrl: data.file_url,
@@ -243,7 +265,7 @@ form.addEventListener("submit", async (e) => {
       err && err.name === "AbortError"
         ? "Toujours en route… réessaie."
         : (err && err.message) || "Je n’ai pas pu répondre.";
-    addBubble({ role: "bot", text: msg });
+    addMessage({ role: "bot", text: msg });
     setStatus(msg);
   } finally {
     clearTimeout(timeout);
@@ -252,5 +274,6 @@ form.addEventListener("submit", async (e) => {
   }
 });
 
+refreshHealth();
 showSuggestions(["Bonjour", "Que sais-tu faire ?", "Explique l’IA"]);
 promptEl.focus();
