@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     llm_provider: str = "auto"  # auto | hf | groq | ollama | custom
     llm_api_key: str = ""
     llm_base_url: str = "https://router.huggingface.co/v1"
-    llm_model: str = "Qwen/Qwen2.5-7B-Instruct"
+    llm_model: str = "meta-llama/Llama-3.1-8B-Instruct"
     llm_max_tokens: int = 1024
     llm_timeout: float = 90.0
 

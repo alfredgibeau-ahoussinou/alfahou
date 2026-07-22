@@ -61,7 +61,7 @@ class CloudLLM:
                 if self.base_url and ("huggingface" in self.base_url or "hf.co" in self.base_url)
                 else "https://router.huggingface.co/v1"
             )
-            model = self.model or "Qwen/Qwen2.5-7B-Instruct"
+            model = self.model or "meta-llama/Llama-3.1-8B-Instruct"
             self._resolved = ("hf", base, model)
             return self._resolved
 
@@ -85,7 +85,7 @@ class CloudLLM:
             self._resolved = (
                 "hf",
                 "https://router.huggingface.co/v1",
-                self.model or "Qwen/Qwen2.5-7B-Instruct",
+                self.model or "meta-llama/Llama-3.1-8B-Instruct",
             )
             return self._resolved
 

@@ -16,7 +16,7 @@ Le texte passe par un **modèle open-source hébergé** (Hugging Face Inference 
 2. En local, copie `.env.example` → `.env` et mets `ALFAHOU_LLM_API_KEY=hf_...`
 3. Sur Render : ajoute la variable d’environnement `ALFAHOU_LLM_API_KEY` (ou `HF_TOKEN`)
 
-Défaut modèle : `Qwen/Qwen2.5-7B-Instruct` via `https://router.huggingface.co/v1`.
+Défaut modèle : `meta-llama/Llama-3.1-8B-Instruct` via `https://router.huggingface.co/v1`.
 
 Sans clé : fallback conversation / skills locaux (mode léger).
 
