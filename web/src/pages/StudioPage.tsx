@@ -569,21 +569,29 @@ export function StudioPage() {
                     {t.fileUrl && t.role === "bot" && (
                       <div className="mt-4">
                         {(t.modality === "image" ||
-                          t.fileUrl.endsWith(".png") ||
-                          t.fileUrl.endsWith(".jpg")) && (
+                          /\.(png|jpe?g|webp)$/i.test(t.fileUrl)) && (
                           <img
                             src={assetUrl(t.fileUrl)}
                             alt="Image AlfAhou"
                             className="block w-full max-w-[28rem] rounded-[var(--radius-md)] border border-white/10 bg-black"
                           />
                         )}
-                        {(t.modality === "video" || t.fileUrl.endsWith(".mp4")) && (
+                        {(t.modality === "video" || /\.mp4$/i.test(t.fileUrl)) && (
                           <video
                             src={assetUrl(t.fileUrl)}
                             controls
+                            playsInline
                             autoPlay
                             loop
+                            muted
                             className="block w-full max-w-[28rem] rounded-[var(--radius-md)] border border-white/10 bg-black"
+                          />
+                        )}
+                        {(t.modality === "pdf" || /\.pdf$/i.test(t.fileUrl)) && (
+                          <iframe
+                            title="PDF AlfAhou"
+                            src={assetUrl(t.fileUrl)}
+                            className="mt-1 h-[min(28rem,55vh)] w-full max-w-[28rem] rounded-[var(--radius-md)] border border-white/10 bg-[#f7f3eb]"
                           />
                         )}
                         <p className="mt-2">

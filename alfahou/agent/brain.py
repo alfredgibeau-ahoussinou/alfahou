@@ -9,6 +9,8 @@ from alfahou.agent.memory import STORE, Session, extract_name
 from alfahou.agent.skills import run_text_skill
 from alfahou.models.image.engine import ImageEngine
 from alfahou.models.pdf.engine import PDFEngine
+from alfahou.models.media import cloud as media_cloud
+from alfahou.models.media.cloud import clean_media_prompt
 from alfahou.models.text.bilingual import detect_lang
 from alfahou.models.text.engine import TextEngine
 from alfahou.models.text.llm_engine import get_llm
@@ -32,7 +34,7 @@ class ChatResult:
 
 
 class AlfAhouBrain:
-    """Agent conversationnel multimodal — LLM cloud + skills + médias."""
+    """Agent conversationnel multimodal — LLM cloud + skills + médias cloud."""
 
     def __init__(self) -> None:
         self.text = TextEngine()
@@ -43,6 +45,7 @@ class AlfAhouBrain:
 
     def status(self) -> dict:
         llm = self.llm.status()
+        media = media_cloud.media_status()
         return {
             "name": "AlfAhou",
             "author": "Alfred Ahoussinou",
@@ -69,9 +72,10 @@ class AlfAhouBrain:
             ],
             "text": True,
             "llm": llm,
-            "image": self.image.available(),
-            "video": self.video.available(),
+            "image": True,
+            "video": True,
             "pdf": True,
+            "media": media,
             "languages": ["fr", "en"],
             "modes": ["balanced", "creative", "precise", "teacher"],
         }
@@ -194,29 +198,74 @@ class AlfAhouBrain:
         kind = self._detect_modality(prompt, modality)
 
         if kind == Modality.IMAGE:
-            path = self.image.generate(prompt)
-            text = "Voici l’image." if lang == "fr" else "Here’s the image."
+            try:
+                path = self.image.generate(prompt)
+            except Exception as e:
+                msg = f"Impossible de générer l’image pour le moment : {e}" if lang == "fr" else f"Couldn’t generate the image: {e}"
+                session.add("assistant", msg)
+                _persist(session)
+                return ChatResult(session.id, msg, "text", None, "image_error", self._suggestions(lang, "image"), lang)
+            provider = getattr(self.image, "last_provider", None) or "cloud"
+            text = (
+                f"Voici l’image (via {provider})."
+                if lang == "fr"
+                else f"Here’s the image (via {provider})."
+            )
             file_url = f"/outputs/{Path(path).name}"
             session.add("assistant", text, modality="image", file_url=file_url)
             _persist(session)
             return ChatResult(session.id, text, "image", file_url, "image", self._suggestions(lang, "image"), lang)
 
         if kind == Modality.VIDEO:
-            path = self.video.generate(prompt)
-            text = "Voici la vidéo." if lang == "fr" else "Here’s the video."
+            try:
+                path = self.video.generate(prompt)
+            except Exception as e:
+                msg = f"Impossible de générer la vidéo pour le moment : {e}" if lang == "fr" else f"Couldn’t generate the video: {e}"
+                session.add("assistant", msg)
+                _persist(session)
+                return ChatResult(session.id, msg, "text", None, "video_error", self._suggestions(lang, "image"), lang)
+            provider = getattr(self.video, "last_provider", None) or "cloud"
+            text = (
+                f"Voici la vidéo (via {provider})."
+                if lang == "fr"
+                else f"Here’s the video (via {provider})."
+            )
             file_url = f"/outputs/{Path(path).name}"
             session.add("assistant", text, modality="video", file_url=file_url)
             _persist(session)
             return ChatResult(session.id, text, "video", file_url, "video", self._suggestions(lang, "image"), lang)
 
         if kind == Modality.PDF:
-            body = self._llm_reply(prompt, lang, session) or self.text.generate(prompt)
-            title = prompt.strip().split("\n")[0][:80] or "Document AlfAhou"
-            path = self.pdf.generate(title=title, body=body, image_path=None)
+            topic = clean_media_prompt(prompt)
+            pdf_prompt = (
+                f"Rédige un document clair et utile sur : {topic}\n"
+                "Structure avec un titre court, des sous-titres ## et des puces si besoin. "
+                "Ton professionnel, français, 250–450 mots."
+                if lang == "fr"
+                else f"Write a clear useful document about: {topic}\n"
+                "Use a short title, ## headings and bullets if useful. Professional tone, 250–450 words."
+            )
+            body = self._llm_reply(pdf_prompt, lang, session) or self.text.generate(prompt)
+            title = topic[:80] or ("Document AlfAhou" if lang == "fr" else "AlfAhou document")
+            # Première ligne markdown # titre
+            m = re.match(r"^#\s+(.+)$", body.strip(), re.M)
+            if m:
+                title = m.group(1).strip()[:80]
+            cover = None
+            try:
+                cover = self.image.generate(f"elegant editorial cover illustration for: {title}, no text")
+            except Exception:
+                cover = None
+            path = self.pdf.generate(title=title, body=body, image_path=cover)
             file_url = f"/outputs/{Path(path).name}"
-            session.add("assistant", body, modality="pdf", file_url=file_url)
+            summary = (
+                f"PDF prêt : « {title} ». Tu peux le télécharger ci-dessous."
+                if lang == "fr"
+                else f"PDF ready: “{title}”. Download it below."
+            )
+            session.add("assistant", summary, modality="pdf", file_url=file_url)
             _persist(session)
-            return ChatResult(session.id, body, "pdf", file_url, "pdf", self._suggestions(lang, "plan"), lang)
+            return ChatResult(session.id, summary, "pdf", file_url, "pdf", self._suggestions(lang, "plan"), lang)
 
         # Maths / heure : moteur local exact
         if self._exact_local_skill(prompt):

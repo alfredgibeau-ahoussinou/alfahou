@@ -107,7 +107,7 @@ export async function sendChat(input: {
   mode: Mode;
 }): Promise<ChatResponse> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 120_000);
+  const timeout = setTimeout(() => controller.abort(), 180_000);
   try {
     const res = await fetch(apiUrl("/api/chat"), {
       method: "POST",
