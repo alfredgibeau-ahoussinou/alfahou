@@ -176,7 +176,11 @@ class CloudLLM:
             "temperature": 0.7 if mode != "precise" else 0.3,
             "max_tokens": settings.llm_max_tokens,
         }
-        headers = {"Content-Type": "application/json"}
+        headers = {
+            "Content-Type": "application/json",
+            "User-Agent": "AlfAhou/1.0 (+https://github.com/alfredgibeau-ahoussinou/alfahou)",
+            "Accept": "application/json",
+        }
         if provider != "ollama" and self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"
 
