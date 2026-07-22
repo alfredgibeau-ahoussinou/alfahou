@@ -15,9 +15,9 @@ class Settings(BaseSettings):
     weights_dir: Path = ROOT / "weights"
     outputs_dir: Path = ROOT / "outputs"
     data_dir: Path = ROOT / "data"
-    corpus_path: Path = ROOT / "data" / "corpus" / "seed_fr.txt"
+    corpus_path: Path = ROOT / "data" / "corpus" / "seed_bilingual.txt"
 
-    text_block_size: int = 128
+    text_block_size: int = 64
     text_n_embd: int = 192
     text_n_head: int = 6
     text_n_layer: int = 4

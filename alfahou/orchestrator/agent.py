@@ -39,10 +39,12 @@ class AlfAhou:
         return {
             "name": "AlfAhou",
             "author": "Alfred Ahoussinou",
-            "text": self.text.available(),
+            "text": True,
+            "text_model": self.text.model_ready(),
             "image": self.image.available(),
             "video": self.video.available(),
             "pdf": True,
+            "languages": ["fr", "en"],
         }
 
     def _detect(self, prompt: str, modality: Modality) -> Modality:

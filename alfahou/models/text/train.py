@@ -9,11 +9,11 @@ from tqdm import tqdm
 from alfahou.core.config import settings
 from alfahou.core.device import DEVICE
 from alfahou.models.text.engine import save_checkpoint
-from alfahou.models.text.tokenizer import CharTokenizer
+from alfahou.models.text.tokenizer import WordTokenizer
 from alfahou.models.text.transformer import MiniGPT
 
 
-class CharDataset(Dataset):
+class TokenDataset(Dataset):
     def __init__(self, data: torch.Tensor, block_size: int):
         self.data = data
         self.block_size = block_size
@@ -28,15 +28,17 @@ class CharDataset(Dataset):
 
 def train_text(
     corpus_path: Path | None = None,
-    steps: int = 800,
+    steps: int = 1200,
     batch_size: int = 32,
     lr: float = 3e-4,
 ) -> MiniGPT:
     corpus_path = corpus_path or settings.corpus_path
     text = corpus_path.read_text(encoding="utf-8")
-    tokenizer = CharTokenizer().build_from_text(text)
+    # Répéter le corpus pour plus d'expositions aux dialogues bilingues
+    text = (text + "\n") * 8
+    tokenizer = WordTokenizer().build_from_text(text, min_freq=1)
     ids = torch.tensor(tokenizer.encode(text, add_special=False), dtype=torch.long)
-    ds = CharDataset(ids, settings.text_block_size)
+    ds = TokenDataset(ids, settings.text_block_size)
     loader = DataLoader(ds, batch_size=batch_size, shuffle=True, drop_last=True)
 
     model = MiniGPT(
@@ -51,7 +53,7 @@ def train_text(
 
     model.train()
     it = iter(loader)
-    pbar = tqdm(range(steps), desc="AlfAhou texte")
+    pbar = tqdm(range(steps), desc="AlfAhou texte bilingue")
     for step in pbar:
         try:
             x, y = next(it)
@@ -65,7 +67,7 @@ def train_text(
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         opt.step()
         if step % 50 == 0:
-            pbar.set_postfix(loss=float(loss.item()))
+            pbar.set_postfix(loss=float(loss.item()), vocab=tokenizer.vocab_size)
 
     model.eval()
     save_checkpoint(model, tokenizer)
