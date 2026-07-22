@@ -8,3 +8,13 @@ services:
     envVars:
       - key: PYTHONUNBUFFERED
         value: "1"
+      - key: ALFAHOU_LLM_PROVIDER
+        value: hf
+      - key: ALFAHOU_LLM_MODEL
+        value: Qwen/Qwen2.5-7B-Instruct
+      - key: ALFAHOU_LLM_BASE_URL
+        value: https://router.huggingface.co/v1
+      - key: ALFAHOU_LLM_API_KEY
+        sync: false
+      - key: HF_TOKEN
+        sync: false

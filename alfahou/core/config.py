@@ -34,7 +34,21 @@ class Settings(BaseSettings):
     video_fps: int = 8
     pdf_with_image: bool = False
 
-    model_config = {"env_prefix": "ALFAHOU_"}
+    # LLM open-source cloud (HF / Groq) ou Ollama local
+    llm_enabled: bool = True
+    llm_provider: str = "auto"  # auto | hf | groq | ollama | custom
+    llm_api_key: str = ""
+    llm_base_url: str = "https://router.huggingface.co/v1"
+    llm_model: str = "Qwen/Qwen2.5-7B-Instruct"
+    llm_max_tokens: int = 1024
+    llm_timeout: float = 90.0
+
+    model_config = {
+        "env_prefix": "ALFAHOU_",
+        "env_file": str(ROOT / ".env"),
+        "env_file_encoding": "utf-8",
+        "extra": "ignore",
+    }
 
 
 settings = Settings()

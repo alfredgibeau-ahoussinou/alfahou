@@ -46,7 +46,12 @@ async function refreshHealth() {
   try {
     const res = await fetch(apiUrl("/api/health"));
     const data = await res.json();
-    deviceEl.textContent = `${data.device} · en ligne`;
+    const llm = data.models && data.models.llm;
+    const llmBit =
+      llm && llm.enabled
+        ? ` · LLM ${llm.provider || "cloud"}`
+        : " · mode léger";
+    deviceEl.textContent = `${data.device} · en ligne${llmBit}`;
   } catch {
     deviceEl.textContent = "hors ligne";
   }

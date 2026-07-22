@@ -1,19 +1,24 @@
 # AlfAhou
 
-IA multimédia maison d’**Alfred Ahoussinou** — texte, images, vidéos et PDF, **sans API cloud**.
-
-Les réseaux (transformer, diffusion, encodeur) sont implémentés et entraînés localement (PyTorch).
+IA multimédia d’**Alfred Ahoussinou** — chat (LLM open-source cloud), images, vidéos et PDF.
 
 ## Production
 
 - **Site** : [https://alfahou.netlify.app](https://alfahou.netlify.app)
+- **API** : [https://alfahou.onrender.com](https://alfahou.onrender.com)
 - **Code** : [github.com/alfredgibeau-ahoussinou/alfahou](https://github.com/alfredgibeau-ahoussinou/alfahou)
 
-### Backend API (Render)
+## LLM open-source cloud (qualité type ChatGPT)
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/alfredgibeau-ahoussinou/alfahou)
+Le texte passe par un **modèle open-source hébergé** (Hugging Face Inference Providers, ou Groq), pas ChatGPT/Gemini propriétaires.
 
-Le site Netlify proxy `/api` vers `https://alfahou.onrender.com`. Après le déploiement Render (plan free), le studio en ligne génère vraiment.
+1. Crée un token gratuit : [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens) (permission *Inference Providers*)
+2. En local, copie `.env.example` → `.env` et mets `ALFAHOU_LLM_API_KEY=hf_...`
+3. Sur Render : ajoute la variable d’environnement `ALFAHOU_LLM_API_KEY` (ou `HF_TOKEN`)
+
+Défaut modèle : `Qwen/Qwen2.5-7B-Instruct` via `https://router.huggingface.co/v1`.
+
+Sans clé : fallback conversation / skills locaux (mode léger).
 
 ## Démarrage local
 
@@ -22,31 +27,18 @@ cd ~/Projects/alfahou
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-# poids déjà inclus dans weights/ — sinon: python scripts/bootstrap.py
+cp .env.example .env   # puis colle ton token HF
 uvicorn alfahou.api.app:app --reload --port 8787
 ```
 
-Ouvre [http://127.0.0.1:8787](http://127.0.0.1:8787).
-
 ## Capacités
 
-| Module | Techno from scratch |
-|--------|---------------------|
-| Texte  | Mini-GPT (transformer decoder) |
-| Image  | Diffusion DDPM + UNet conditionné |
-| Vidéo  | Séquence d’images + champ de mouvement |
-| PDF    | Composition ReportLab du contenu généré |
-
-## Architecture
-
-```
-alfahou/
-  core/          device, config
-  models/        text, image, video, pdf
-  orchestrator/  routage multimodal
-  api/           FastAPI + UI
-  scripts/       bootstrap & train
-```
+| Module | Techno |
+|--------|--------|
+| Texte  | LLM open-source cloud (HF/Groq) + fallback |
+| Image  | Diffusion DDPM + UNet (maison) |
+| Vidéo  | Animation locale |
+| PDF    | ReportLab |
 
 ## Licence
 
