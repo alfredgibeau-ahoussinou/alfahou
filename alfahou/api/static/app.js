@@ -5,7 +5,6 @@ const promptEl = document.getElementById("prompt");
 const statusEl = document.getElementById("status");
 const threadEl = document.getElementById("thread");
 const goBtn = document.getElementById("go");
-const deviceEl = document.getElementById("device");
 const modeEl = document.getElementById("mode");
 const suggestionsEl = document.getElementById("suggestions");
 const btnReset = document.getElementById("btn-reset");
@@ -15,7 +14,6 @@ const btnVoiceOut = document.getElementById("btn-voice-out");
 let sessionId = localStorage.getItem("alfahou_session") || null;
 let lastBotText = "";
 let speakReplies = localStorage.getItem("alfahou_speak") === "1";
-
 if (speakReplies) btnVoiceOut.classList.add("listening");
 
 function apiUrl(path) {
@@ -29,7 +27,7 @@ function assetUrl(path) {
 
 function autoSize() {
   promptEl.style.height = "auto";
-  promptEl.style.height = `${Math.min(promptEl.scrollHeight, 140)}px`;
+  promptEl.style.height = `${Math.min(promptEl.scrollHeight, 110)}px`;
 }
 promptEl.addEventListener("input", autoSize);
 promptEl.addEventListener("keydown", (e) => {
@@ -39,21 +37,9 @@ promptEl.addEventListener("keydown", (e) => {
   }
 });
 
-async function refreshHealth() {
-  try {
-    const res = await fetch(apiUrl("/api/health"));
-    const data = await res.json();
-    const caps = (data.models && data.models.capabilities) || [];
-    deviceEl.textContent = `${data.device} · ${caps.length || "ok"} skills`;
-  } catch {
-    deviceEl.textContent = "hors ligne";
-  }
-}
-
-function setStatus(msg, isError = false) {
+function setStatus(msg) {
   statusEl.hidden = !msg;
   statusEl.textContent = msg || "";
-  statusEl.classList.toggle("error", isError);
 }
 
 function escapeHtml(str) {
@@ -66,7 +52,7 @@ function escapeHtml(str) {
 
 function renderMarkdown(text) {
   let html = escapeHtml(text);
-  html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, (_, _lang, code) => `<pre><code>${code.trim()}</code></pre>`);
+  html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, (_, _l, code) => `<pre><code>${code.trim()}</code></pre>`);
   html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
   html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   html = html.replace(/^(?:- |\* )(.+)$/gm, "<li>$1</li>");
@@ -77,22 +63,16 @@ function renderMarkdown(text) {
   return `<p>${html}</p>`;
 }
 
-function addBubble({ role, text, html, fileUrl, modality }) {
+function addBubble({ role, text, fileUrl, modality }) {
   const el = document.createElement("article");
   el.className = `bubble ${role === "you" ? "you" : "bot"}`;
-  const who = document.createElement("p");
-  who.className = "who";
-  who.textContent = role === "you" ? "Toi" : "AlfAhou";
-  el.appendChild(who);
 
   if (role === "you") {
-    const p = document.createElement("p");
-    p.textContent = text || "";
-    el.appendChild(p);
+    el.textContent = text || "";
   } else {
     const body = document.createElement("div");
     body.className = "md";
-    body.innerHTML = html || renderMarkdown(text || "");
+    body.innerHTML = renderMarkdown(text || "");
     el.appendChild(body);
     if (fileUrl) {
       const url = assetUrl(fileUrl);
@@ -125,7 +105,7 @@ function addTyping() {
   const el = document.createElement("article");
   el.className = "bubble bot typing";
   el.id = "typing";
-  el.innerHTML = `<p class="who">AlfAhou</p><p class="dots"><i></i><i></i><i></i></p>`;
+  el.innerHTML = `<span class="dots" aria-label="écrit"><i></i><i></i><i></i></span>`;
   threadEl.appendChild(el);
   el.scrollIntoView({ behavior: "smooth", block: "end" });
 }
@@ -182,16 +162,15 @@ btnReset.addEventListener("click", async () => {
   }
   sessionId = null;
   localStorage.removeItem("alfahou_session");
-  threadEl.innerHTML = "";
+  threadEl.innerHTML = `<p class="day-stamp">Aujourd’hui</p>`;
   addBubble({
     role: "bot",
-    text: "Nouvelle conversation. Dis-moi ce que tu veux — texte, image, plan, code, PDF…",
+    text: "Nouvelle conversation. Dis-moi ce que tu veux ✨",
   });
   showSuggestions(["Bonjour", "Que sais-tu faire ?", "Fais un plan"]);
   setStatus("");
 });
 
-// Dictée (Web Speech API navigateur)
 let recognition = null;
 if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -207,7 +186,7 @@ if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
 }
 btnMic.addEventListener("click", () => {
   if (!recognition) {
-    setStatus("Dictée non supportée sur ce navigateur.", true);
+    setStatus("Dictée non supportée ici.");
     return;
   }
   btnMic.classList.add("listening");
@@ -245,9 +224,7 @@ form.addEventListener("submit", async (e) => {
       signal: controller.signal,
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(data.detail || data.message || `HTTP ${res.status}`);
-    }
+    if (!res.ok) throw new Error(data.detail || data.message || `HTTP ${res.status}`);
     sessionId = data.session_id;
     localStorage.setItem("alfahou_session", sessionId);
     removeTyping();
@@ -267,7 +244,7 @@ form.addEventListener("submit", async (e) => {
         ? "Toujours en route… réessaie."
         : (err && err.message) || "Je n’ai pas pu répondre.";
     addBubble({ role: "bot", text: msg });
-    setStatus(msg, true);
+    setStatus(msg);
   } finally {
     clearTimeout(timeout);
     goBtn.disabled = false;
@@ -275,6 +252,5 @@ form.addEventListener("submit", async (e) => {
   }
 });
 
-refreshHealth();
-showSuggestions(["Bonjour", "Que sais-tu faire ?", "Explique l’IA simplement"]);
+showSuggestions(["Bonjour", "Que sais-tu faire ?", "Explique l’IA"]);
 promptEl.focus();
