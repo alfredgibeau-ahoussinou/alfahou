@@ -3,75 +3,85 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>AlfAhou — Alfred Ahoussinou</title>
-  <meta name="description" content="AlfAhou — IA multimédia FR/EN d’Alfred Ahoussinou" />
-  <meta name="theme-color" content="#0C0F14" />
+  <title>AlfAhou</title>
+  <meta name="description" content="AlfAhou — IA multimédia d’Alfred Ahoussinou" />
+  <meta name="theme-color" content="#0E1512" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@50..150,600;50..150,800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <div class="stage">
-    <aside class="brand-rail" aria-label="AlfAhou">
-      <p class="eyebrow">Alfred Ahoussinou</p>
-      <h1 class="brand">AlfAhou</h1>
-      <p class="manifesto">Correspondance multimédia. Texte, image, vidéo, PDF — FR & EN.</p>
-      <div class="rail-actions">
-        <button type="button" id="btn-reset" class="ghost-btn">Nouvelle conversation</button>
-        <a class="ghost-btn link" href="https://github.com/alfredgibeau-ahoussinou/alfahou" target="_blank" rel="noopener">GitHub</a>
+  <div class="app" id="app">
+    <header class="mast">
+      <div class="mast-brand">
+        <a class="logo" href="/" aria-label="AlfAhou">AlfAhou</a>
+        <span class="pulse" aria-hidden="true"></span>
       </div>
-      <p class="rail-foot" id="device">—</p>
-    </aside>
-
-    <section class="converse">
-      <header class="mobile-bar">
-        <div>
-          <p class="eyebrow">Alfred Ahoussinou</p>
-          <h1 class="brand-sm">AlfAhou</h1>
-        </div>
-        <button type="button" id="btn-reset-m" class="icon-round" aria-label="Nouvelle conversation">↻</button>
-      </header>
-
-      <div class="controls">
-        <label class="field">
-          <span>Mode</span>
-          <select id="mode">
-            <option value="balanced">Équilibré</option>
-            <option value="creative">Créatif</option>
-            <option value="precise">Précis</option>
-            <option value="teacher">Prof</option>
-          </select>
-        </label>
-        <div class="modes" role="group" aria-label="Modalité">
-          <label class="chip"><input type="radio" name="modality" value="auto" checked /><span>Auto</span></label>
-          <label class="chip"><input type="radio" name="modality" value="text" /><span>Texte</span></label>
-          <label class="chip"><input type="radio" name="modality" value="image" /><span>Image</span></label>
-          <label class="chip"><input type="radio" name="modality" value="video" /><span>Vidéo</span></label>
-          <label class="chip"><input type="radio" name="modality" value="pdf" /><span>PDF</span></label>
-        </div>
-        <button type="button" id="btn-voice-out" class="icon-round" title="Lecture vocale">♪</button>
+      <p class="mast-author">Alfred Ahoussinou</p>
+      <div class="mast-tools">
+        <button type="button" id="btn-voice-out" class="tool" title="Lecture vocale">Audio</button>
+        <button type="button" id="btn-reset" class="tool">Nouveau</button>
+        <a class="tool" href="https://github.com/alfredgibeau-ahoussinou/alfahou" target="_blank" rel="noopener">Code</a>
       </div>
+    </header>
 
-      <div class="thread" id="thread" aria-live="polite">
-        <article class="msg bot">
-          <p class="msg-label">AlfAhou</p>
-          <div class="md">
-            <p>Salut. Dis-moi ce que tu veux créer ou comprendre — en français ou en anglais.</p>
+    <div class="workspace">
+      <aside class="brief">
+        <p class="brief-kicker">Correspondance ouverte</p>
+        <h2 class="brief-title">Parle.<br />Crée.<br />Reçois.</h2>
+        <p class="brief-copy">Texte, image, vidéo, PDF — français & anglais. Une IA maison, pas une coque d’API.</p>
+        <ul class="brief-list">
+          <li>Mémoire de conversation</li>
+          <li>Multimédia intégré</li>
+          <li>Modes & dictée</li>
+        </ul>
+        <p class="brief-status" id="device">connexion…</p>
+      </aside>
+
+      <section class="board">
+        <div class="board-top">
+          <label class="select">
+            <span>Mode</span>
+            <select id="mode">
+              <option value="balanced">Équilibré</option>
+              <option value="creative">Créatif</option>
+              <option value="precise">Précis</option>
+              <option value="teacher">Prof</option>
+            </select>
+          </label>
+          <div class="filters" role="group" aria-label="Modalité">
+            <label><input type="radio" name="modality" value="auto" checked /><span>Auto</span></label>
+            <label><input type="radio" name="modality" value="text" /><span>Texte</span></label>
+            <label><input type="radio" name="modality" value="image" /><span>Image</span></label>
+            <label><input type="radio" name="modality" value="video" /><span>Vidéo</span></label>
+            <label><input type="radio" name="modality" value="pdf" /><span>PDF</span></label>
           </div>
-        </article>
-      </div>
+        </div>
 
-      <div id="suggestions" class="suggestions" hidden></div>
+        <div class="feed" id="thread" aria-live="polite">
+          <article class="row bot">
+            <div class="meta">
+              <span class="who">AlfAhou</span>
+              <span class="when">maintenant</span>
+            </div>
+            <div class="body md">
+              <p>Salut. Dis-moi ce que tu veux — une explication, un plan, une image, une vidéo, un PDF. FR ou EN.</p>
+            </div>
+          </article>
+        </div>
 
-      <form id="composer" class="composer" autocomplete="off">
-        <button type="button" id="btn-mic" class="icon-round" title="Dicter" aria-label="Dicter">🎙</button>
-        <label class="sr-only" for="prompt">Message</label>
-        <textarea id="prompt" name="prompt" rows="1" placeholder="Écrire à AlfAhou…" required></textarea>
-        <button type="submit" id="go">Envoyer</button>
-      </form>
-      <p id="status" class="status" hidden></p>
-    </section>
+        <div id="suggestions" class="hints" hidden></div>
+
+        <form id="composer" class="dock" autocomplete="off">
+          <button type="button" id="btn-mic" class="dock-side" title="Dicter" aria-label="Dicter">Mic</button>
+          <label class="sr-only" for="prompt">Message</label>
+          <textarea id="prompt" name="prompt" rows="1" placeholder="Écrire ici…" required></textarea>
+          <button type="submit" id="go">Envoyer</button>
+        </form>
+        <p id="status" class="status" hidden></p>
+      </section>
+    </div>
   </div>
   <script src="/app.js"></script>
 </body>

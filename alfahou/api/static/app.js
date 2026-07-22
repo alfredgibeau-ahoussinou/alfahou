@@ -9,7 +9,6 @@ const modeEl = document.getElementById("mode");
 const suggestionsEl = document.getElementById("suggestions");
 const deviceEl = document.getElementById("device");
 const btnReset = document.getElementById("btn-reset");
-const btnResetM = document.getElementById("btn-reset-m");
 const btnMic = document.getElementById("btn-mic");
 const btnVoiceOut = document.getElementById("btn-voice-out");
 
@@ -29,7 +28,7 @@ function assetUrl(path) {
 
 function autoSize() {
   promptEl.style.height = "auto";
-  promptEl.style.height = `${Math.min(promptEl.scrollHeight, 144)}px`;
+  promptEl.style.height = `${Math.min(promptEl.scrollHeight, 136)}px`;
 }
 promptEl.addEventListener("input", autoSize);
 promptEl.addEventListener("keydown", (e) => {
@@ -43,9 +42,9 @@ async function refreshHealth() {
   try {
     const res = await fetch(apiUrl("/api/health"));
     const data = await res.json();
-    if (deviceEl) deviceEl.textContent = `${data.device} · en ligne`;
+    deviceEl.textContent = `${data.device} · en ligne`;
   } catch {
-    if (deviceEl) deviceEl.textContent = "hors ligne";
+    deviceEl.textContent = "hors ligne";
   }
 }
 
@@ -75,44 +74,44 @@ function renderMarkdown(text) {
   return `<p>${html}</p>`;
 }
 
-function addMessage({ role, text, fileUrl, modality }) {
+function stamp() {
+  return new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+}
+
+function addRow({ role, text, fileUrl, modality }) {
   const el = document.createElement("article");
-  el.className = `msg ${role === "you" ? "you" : "bot"}`;
+  el.className = `row ${role === "you" ? "you" : "bot"}`;
 
-  const label = document.createElement("p");
-  label.className = "msg-label";
-  label.textContent = role === "you" ? "Toi" : "AlfAhou";
-  el.appendChild(label);
+  const meta = document.createElement("div");
+  meta.className = "meta";
+  meta.innerHTML = `<span class="who">${role === "you" ? "Toi" : "AlfAhou"}</span><span class="when">${stamp()}</span>`;
+  el.appendChild(meta);
 
-  if (role === "you") {
-    const body = document.createElement("div");
-    body.textContent = text || "";
-    el.appendChild(body);
-  } else {
-    const body = document.createElement("div");
-    body.className = "md";
-    body.innerHTML = renderMarkdown(text || "");
-    el.appendChild(body);
-    if (fileUrl) {
-      const url = assetUrl(fileUrl);
-      if (modality === "image" || url.endsWith(".png") || url.endsWith(".jpg")) {
-        const img = document.createElement("img");
-        img.src = url;
-        img.alt = "Image AlfAhou";
-        el.appendChild(img);
-      } else if (modality === "video" || url.endsWith(".mp4")) {
-        const vid = document.createElement("video");
-        vid.src = url;
-        vid.controls = true;
-        vid.autoplay = true;
-        vid.loop = true;
-        el.appendChild(vid);
-      }
-      const meta = document.createElement("p");
-      meta.className = "meta";
-      meta.innerHTML = `<a href="${url}" download target="_blank" rel="noopener">Télécharger</a>`;
-      el.appendChild(meta);
+  const body = document.createElement("div");
+  body.className = "body" + (role === "bot" ? " md" : "");
+  if (role === "you") body.textContent = text || "";
+  else body.innerHTML = renderMarkdown(text || "");
+  el.appendChild(body);
+
+  if (fileUrl && role === "bot") {
+    const url = assetUrl(fileUrl);
+    if (modality === "image" || url.endsWith(".png") || url.endsWith(".jpg")) {
+      const img = document.createElement("img");
+      img.src = url;
+      img.alt = "Image AlfAhou";
+      el.appendChild(img);
+    } else if (modality === "video" || url.endsWith(".mp4")) {
+      const vid = document.createElement("video");
+      vid.src = url;
+      vid.controls = true;
+      vid.autoplay = true;
+      vid.loop = true;
+      el.appendChild(vid);
     }
+    const metaFile = document.createElement("p");
+    metaFile.className = "file-meta";
+    metaFile.innerHTML = `<a href="${url}" download target="_blank" rel="noopener">Télécharger</a>`;
+    el.appendChild(metaFile);
   }
 
   threadEl.appendChild(el);
@@ -122,9 +121,9 @@ function addMessage({ role, text, fileUrl, modality }) {
 
 function addTyping() {
   const el = document.createElement("article");
-  el.className = "msg bot typing";
+  el.className = "row bot typing";
   el.id = "typing";
-  el.innerHTML = `<i></i><i></i><i></i>`;
+  el.innerHTML = `<div class="meta"><span class="who">AlfAhou</span><span class="when">…</span></div><div class="body"><span class="dots"><i></i><i></i><i></i></span></div>`;
   threadEl.appendChild(el);
   el.scrollIntoView({ behavior: "smooth", block: "end" });
 }
@@ -169,7 +168,7 @@ btnVoiceOut.addEventListener("click", () => {
   else window.speechSynthesis?.cancel();
 });
 
-async function resetChat() {
+btnReset.addEventListener("click", async () => {
   if (sessionId) {
     try {
       await fetch(apiUrl("/api/chat/reset"), {
@@ -182,16 +181,13 @@ async function resetChat() {
   sessionId = null;
   localStorage.removeItem("alfahou_session");
   threadEl.innerHTML = "";
-  addMessage({
+  addRow({
     role: "bot",
     text: "Nouvelle conversation. Dis-moi ce que tu veux créer ou comprendre.",
   });
   showSuggestions(["Bonjour", "Que sais-tu faire ?", "Fais un plan"]);
   setStatus("");
-}
-
-btnReset?.addEventListener("click", resetChat);
-btnResetM?.addEventListener("click", resetChat);
+});
 
 let recognition = null;
 if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
@@ -200,8 +196,7 @@ if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
   recognition.lang = "fr-FR";
   recognition.interimResults = false;
   recognition.onresult = (ev) => {
-    const said = ev.results[0][0].transcript;
-    promptEl.value = (promptEl.value ? promptEl.value + " " : "") + said;
+    promptEl.value = (promptEl.value ? promptEl.value + " " : "") + ev.results[0][0].transcript;
     autoSize();
   };
   recognition.onend = () => btnMic.classList.remove("listening");
@@ -222,7 +217,7 @@ form.addEventListener("submit", async (e) => {
   const modality = form.querySelector('input[name="modality"]:checked').value;
   const mode = modeEl.value;
 
-  addMessage({ role: "you", text: prompt });
+  addRow({ role: "you", text: prompt });
   promptEl.value = "";
   autoSize();
   goBtn.disabled = true;
@@ -237,12 +232,7 @@ form.addEventListener("submit", async (e) => {
     const res = await fetch(apiUrl("/api/chat"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        prompt,
-        session_id: sessionId,
-        modality,
-        mode,
-      }),
+      body: JSON.stringify({ prompt, session_id: sessionId, modality, mode }),
       signal: controller.signal,
     });
     const data = await res.json().catch(() => ({}));
@@ -251,7 +241,7 @@ form.addEventListener("submit", async (e) => {
     localStorage.setItem("alfahou_session", sessionId);
     removeTyping();
     lastBotText = data.text || "";
-    addMessage({
+    addRow({
       role: "bot",
       text: data.text,
       fileUrl: data.file_url,
@@ -265,7 +255,7 @@ form.addEventListener("submit", async (e) => {
       err && err.name === "AbortError"
         ? "Toujours en route… réessaie."
         : (err && err.message) || "Je n’ai pas pu répondre.";
-    addMessage({ role: "bot", text: msg });
+    addRow({ role: "bot", text: msg });
     setStatus(msg);
   } finally {
     clearTimeout(timeout);
