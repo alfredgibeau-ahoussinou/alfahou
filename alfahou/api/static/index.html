@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>AlfAhou — Alfred Ahoussinou</title>
-  <meta name="description" content="AlfAhou : conversation multimédia FR/EN — texte, image, vidéo, PDF." />
+  <meta name="description" content="AlfAhou : IA complète FR/EN — chat, mémoire, texte, image, vidéo, PDF, outils." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -19,29 +19,51 @@
         <h1 class="brand">AlfAhou</h1>
         <p class="owner">Alfred Ahoussinou</p>
       </div>
-      <a class="gh" href="https://github.com/alfredgibeau-ahoussinou/alfahou" target="_blank" rel="noopener">GitHub</a>
+      <div class="top-actions">
+        <button type="button" id="btn-voice-out" class="icon-btn" title="Lire à voix haute">Voix</button>
+        <button type="button" id="btn-reset" class="icon-btn" title="Nouvelle conversation">Nouveau</button>
+        <a class="gh" href="https://github.com/alfredgibeau-ahoussinou/alfahou" target="_blank" rel="noopener">GitHub</a>
+      </div>
     </header>
 
-    <main class="chat" id="chat">
-      <div class="thread" id="thread" aria-live="polite">
-        <article class="bubble bot welcome" id="welcome">
-          <p class="who">AlfAhou</p>
-          <p>Salut — écris-moi un message en français ou en anglais. Je peux répondre, créer une image, une vidéo ou un PDF.</p>
-        </article>
-      </div>
-
-      <form id="composer" class="composer" autocomplete="off">
-        <div class="modes" role="group" aria-label="Type de réponse">
+    <main class="chat">
+      <div class="toolbar">
+        <label class="select-wrap">
+          <span class="sr-only">Mode</span>
+          <select id="mode">
+            <option value="balanced">Équilibré</option>
+            <option value="creative">Créatif</option>
+            <option value="precise">Précis</option>
+            <option value="teacher">Prof</option>
+          </select>
+        </label>
+        <div class="modes" role="group" aria-label="Modalité">
           <label class="mode"><input type="radio" name="modality" value="auto" checked /><span>Auto</span></label>
           <label class="mode"><input type="radio" name="modality" value="text" /><span>Texte</span></label>
           <label class="mode"><input type="radio" name="modality" value="image" /><span>Image</span></label>
           <label class="mode"><input type="radio" name="modality" value="video" /><span>Vidéo</span></label>
           <label class="mode"><input type="radio" name="modality" value="pdf" /><span>PDF</span></label>
         </div>
+      </div>
+
+      <div class="thread" id="thread" aria-live="polite">
+        <article class="bubble bot welcome">
+          <p class="who">AlfAhou</p>
+          <div class="md">
+            <p>Salut — je suis une IA complète : discussion, mémoire, traduction, plans, code, maths, images, vidéos, PDF…</p>
+            <p>Écris en <strong>français</strong> ou en <strong>anglais</strong>.</p>
+          </div>
+        </article>
+      </div>
+
+      <div id="suggestions" class="suggestions" hidden></div>
+
+      <form id="composer" class="composer" autocomplete="off">
         <div class="row">
+          <button type="button" id="btn-mic" class="icon-btn mic" title="Dicter" aria-label="Dicter">🎙</button>
           <label class="sr-only" for="prompt">Message</label>
-          <textarea id="prompt" name="prompt" rows="1" placeholder="Écris ton message…" required></textarea>
-          <button type="submit" id="go" aria-label="Envoyer">Envoyer</button>
+          <textarea id="prompt" name="prompt" rows="1" placeholder="Écris à AlfAhou…" required></textarea>
+          <button type="submit" id="go">Envoyer</button>
         </div>
         <p id="status" class="status" hidden></p>
       </form>
@@ -49,7 +71,7 @@
 
     <footer class="foot">
       <span id="device">—</span>
-      <span>FR · EN</span>
+      <span>Chat · Mémoire · FR/EN · Multimédia</span>
     </footer>
   </div>
 
