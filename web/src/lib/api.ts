@@ -25,6 +25,7 @@ export type HealthResponse = {
       enabled?: boolean;
       provider?: string | null;
       model?: string | null;
+      tools?: boolean;
     };
   };
 };

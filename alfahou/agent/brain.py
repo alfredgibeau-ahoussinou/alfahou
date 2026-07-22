@@ -163,11 +163,11 @@ class AlfAhouBrain:
             if lang == "en":
                 return (
                     "I’m **AlfAhou** — Alfred + Ahoussinou.\n\n"
-                    "I chat with an open-source cloud LLM, and I can also make images, videos, and PDFs."
+                    "I chat with a modern cloud LLM (GPT-OSS + live web search), and I can also make images, videos, and PDFs."
                 )
             return (
                 "Je suis **AlfAhou** — Alfred + Ahoussinou.\n\n"
-                "Je discute via un LLM open-source cloud, et je peux aussi faire images, vidéos et PDF."
+                "Je discute via un LLM cloud récent (GPT-OSS + recherche web), et je peux aussi faire images, vidéos et PDF."
             )
         return None
 
@@ -225,7 +225,7 @@ class AlfAhouBrain:
             _persist(session)
             return ChatResult(session.id, text, "text", None, skill, self._suggestions(lang, skill), lang)
 
-        # Chemin principal : LLM open-source cloud
+        # Chemin principal : LLM cloud moderne (GPT-OSS + outils)
         llm_text = self._llm_reply(prompt, lang, session)
         if llm_text:
             session.add("assistant", llm_text)

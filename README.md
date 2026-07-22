@@ -1,6 +1,6 @@
 # AlfAhou
 
-IA multimédia d’**Alfred Ahoussinou** — front React moderne + backend FastAPI + LLM open-source cloud.
+IA multimédia d’**Alfred Ahoussinou** — front React moderne + backend FastAPI + LLM cloud 2026 (GPT-OSS + recherche web).
 
 ## Stack front (pointe)
 
@@ -32,9 +32,11 @@ source .venv/bin/activate
 uvicorn alfahou.api.app:app --reload --port 8787
 ```
 
-## LLM
+## LLM (2026)
 
-Configurer `GROQ_API_KEY` ou `HF_TOKEN` / `ALFAHOU_LLM_API_KEY` (voir `.env.example`).
+Par défaut : **Groq `openai/gpt-oss-120b`** avec outils **browser_search** + **code_interpreter** (réponses à jour, plus Llama 3.3 déprécié).
+
+Configurer `GROQ_API_KEY` (voir `.env.example`). Options : `groq/compound`, OpenRouter, Hugging Face.
 
 ## Licence
 

@@ -9,12 +9,18 @@ services:
       - key: PYTHONUNBUFFERED
         value: "1"
       - key: ALFAHOU_LLM_PROVIDER
-        value: hf
+        value: groq
       - key: ALFAHOU_LLM_MODEL
-        value: meta-llama/Llama-3.1-8B-Instruct
+        value: openai/gpt-oss-120b
       - key: ALFAHOU_LLM_BASE_URL
-        value: https://router.huggingface.co/v1
+        value: https://api.groq.com/openai/v1
+      - key: ALFAHOU_LLM_MAX_TOKENS
+        value: "2048"
+      - key: GROQ_API_KEY
+        sync: false
       - key: ALFAHOU_LLM_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
         sync: false
       - key: HF_TOKEN
         sync: false

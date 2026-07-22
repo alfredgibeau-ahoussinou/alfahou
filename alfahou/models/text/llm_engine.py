@@ -1,37 +1,56 @@
-"""LLM open-source cloud — Hugging Face / Groq / Ollama (API compatible OpenAI)."""
+"""LLM cloud moderne — Groq GPT-OSS / Compound, OpenRouter, HF, Ollama."""
 
 from __future__ import annotations
 
 import json
 import os
+import re
 import urllib.error
 import urllib.request
+from datetime import date
 from typing import Any
 
 from alfahou.core.config import settings
 
+# Modèles 2026 (Llama 3.3 70B est déprécié chez Groq → shutdown 16/08/2026)
+GROQ_DEFAULT_MODEL = "openai/gpt-oss-120b"
+GROQ_FAST_MODEL = "openai/gpt-oss-20b"
+GROQ_COMPOUND = "groq/compound"
+OPENROUTER_DEFAULT = "openai/gpt-oss-120b"
+HF_DEFAULT = "Qwen/Qwen3-32B"
+
 SYSTEM_PROMPT = """Tu es AlfAhou, l’IA multimédia d’Alfred Ahoussinou.
-Tu réponds comme un excellent assistant moderne (niveau ChatGPT) : naturel, direct, utile, sans blabla marketing.
-Tu parles français ou anglais selon l’utilisateur. Tu peux utiliser tout le vocabulaire courant.
+Tu réponds comme un excellent assistant moderne : naturel, direct, utile, à jour.
+Tu as accès à des outils temps réel (recherche web / code) quand c’est pertinent — utilise-les pour les faits récents, l’actu, les versions logicielles, les prix, la météo, etc.
+Tu parles français ou anglais selon l’utilisateur.
 Tu aides sur tout sujet : conversation, explications, rédaction, code, idées, plans.
-Tu peux aussi proposer de créer une image, une vidéo ou un PDF quand c’est pertinent (l’utilisateur choisit la modalité dans l’UI).
+Tu peux aussi proposer de créer une image, une vidéo ou un PDF (modalité choisie dans l’UI).
 Ne dis pas que tu es ChatGPT, Gemini ou Claude. Tu es AlfAhou.
 Sois concis quand la question est courte ; développe quand on te le demande.
-Pas de listes de « capacités » sauf si on te le demande explicitement."""
+N’invente pas de dates ni d’événements : si tu n’es pas sûr, cherche ou dis-le clairement.
+Ne laisse pas de marqueurs de citation techniques du type 【…】 dans ta réponse."""
 
 
 def _pick_api_key() -> str:
     return (
         (settings.llm_api_key or "").strip()
         or os.environ.get("ALFAHOU_LLM_API_KEY", "").strip()
+        or os.environ.get("GROQ_API_KEY", "").strip()
+        or os.environ.get("OPENROUTER_API_KEY", "").strip()
         or os.environ.get("HF_TOKEN", "").strip()
         or os.environ.get("HUGGINGFACE_HUB_TOKEN", "").strip()
-        or os.environ.get("GROQ_API_KEY", "").strip()
     )
 
 
+def _clean_answer(text: str) -> str:
+    """Retire les marqueurs de citation internes (browser_search Groq)."""
+    text = re.sub(r"【[^】]*】", "", text)
+    text = re.sub(r"[ \t]+\n", "\n", text)
+    return text.strip()
+
+
 class CloudLLM:
-    """Client chat completions (HF router, Groq, Ollama)."""
+    """Client chat completions (Groq GPT-OSS/Compound, OpenRouter, HF, Ollama)."""
 
     def __init__(self) -> None:
         self.provider = (settings.llm_provider or "auto").lower().strip()
@@ -48,37 +67,59 @@ class CloudLLM:
 
         key = self.api_key
         groq_key = os.environ.get("GROQ_API_KEY", "").strip()
+        or_key = os.environ.get("OPENROUTER_API_KEY", "").strip()
         hf_key = (
             os.environ.get("HF_TOKEN", "").strip()
             or os.environ.get("HUGGINGFACE_HUB_TOKEN", "").strip()
             or (key if key.startswith("hf_") else "")
         )
-        # Clé unique : détecter le type
         if key.startswith("gsk_"):
             groq_key = groq_key or key
+        if key.startswith("sk-or-"):
+            or_key = or_key or key
         if key.startswith("hf_"):
             hf_key = hf_key or key
-        if key and not groq_key and not hf_key:
-            # clé générique selon provider demandé
+        if key and not groq_key and not or_key and not hf_key:
             if self.provider == "groq":
                 groq_key = key
+            elif self.provider in {"openrouter", "or"}:
+                or_key = key
             else:
                 hf_key = key
 
         if self.provider == "ollama":
             base = self.base_url if self.base_url and "11434" in self.base_url else "http://127.0.0.1:11434/v1"
-            model = self.model or "qwen2.5:3b"
+            model = self.model or "qwen2.5:7b"
             self._resolved = ("ollama", base, model)
             return self._resolved
 
-        # Préférer Groq (quota gratuit généreux) si disponible
-        if self.provider in {"groq", "auto"} and groq_key:
+        if self.provider in {"openrouter", "or"} and or_key:
+            self.api_key = or_key
+            model = self.model or OPENROUTER_DEFAULT
+            self._resolved = ("openrouter", "https://openrouter.ai/api/v1", model)
+            return self._resolved
+
+        # Groq : modèles 2026 + outils (recherche web)
+        if self.provider in {"groq", "auto", "compound"} and groq_key:
             self.api_key = groq_key
-            model = self.model if self.provider == "groq" and self.model else "llama-3.3-70b-versatile"
-            if self.provider == "auto" and self.model and "llama" not in self.model.lower() and "groq" not in self.model.lower():
-                model = "llama-3.3-70b-versatile"
-            if self.provider == "auto":
-                model = "llama-3.3-70b-versatile"
+            if self.provider == "compound":
+                model = GROQ_COMPOUND
+            elif self.model:
+                model = self.model
+                # Migrer automatiquement les anciens IDs dépréciés
+                if model in {
+                    "llama-3.3-70b-versatile",
+                    "llama-3.1-8b-instant",
+                    "llama3-70b-8192",
+                    "llama3-8b-8192",
+                    "meta-llama/llama-4-scout-17b-16e-instruct",
+                    "qwen/qwen3-32b",
+                }:
+                    model = GROQ_DEFAULT_MODEL
+            else:
+                model = GROQ_DEFAULT_MODEL
+            if self.provider == "auto" and not self.model:
+                model = GROQ_DEFAULT_MODEL
             self._resolved = ("groq", "https://api.groq.com/openai/v1", model)
             return self._resolved
 
@@ -89,8 +130,14 @@ class CloudLLM:
                 if self.base_url and ("huggingface" in self.base_url or "hf.co" in self.base_url)
                 else "https://router.huggingface.co/v1"
             )
-            model = self.model or "meta-llama/Llama-3.1-8B-Instruct"
+            model = self.model or HF_DEFAULT
             self._resolved = ("hf", base, model)
+            return self._resolved
+
+        # OpenRouter en secours si présent
+        if self.provider == "auto" and or_key:
+            self.api_key = or_key
+            self._resolved = ("openrouter", "https://openrouter.ai/api/v1", self.model or OPENROUTER_DEFAULT)
             return self._resolved
 
         if self.provider == "groq" and not groq_key:
@@ -99,7 +146,7 @@ class CloudLLM:
 
         try:
             urllib.request.urlopen("http://127.0.0.1:11434/api/tags", timeout=0.4)
-            self._resolved = ("ollama", "http://127.0.0.1:11434/v1", self.model or "qwen2.5:3b")
+            self._resolved = ("ollama", "http://127.0.0.1:11434/v1", self.model or "qwen2.5:7b")
             return self._resolved
         except Exception:
             pass
@@ -122,17 +169,37 @@ class CloudLLM:
             "provider": provider,
             "model": model,
             "base_url": base,
+            "tools": self._tools_for(provider, model) is not None,
             "last_error": self.last_error,
         }
 
+    def _tools_for(self, provider: str, model: str) -> list[dict[str, str]] | None:
+        """Outils serveur Groq (recherche web + code) — infos à jour."""
+        if provider != "groq":
+            return None
+        mid = model.lower()
+        if mid.startswith("groq/compound"):
+            return None  # Compound orchestre ses outils tout seul
+        if mid in {
+            "openai/gpt-oss-120b",
+            "openai/gpt-oss-20b",
+            "openai/gpt-oss-safeguard-20b",
+        }:
+            return [{"type": "browser_search"}, {"type": "code_interpreter"}]
+        return None
+
     def _mode_hint(self, mode: str, lang: str) -> str:
+        today = date.today().isoformat()
+        stamp = f"Date du jour (UTC approximatif) : {today}."
         if mode == "creative":
-            return "Mode créatif : sois inventif, images mentales, ton vivant." if lang == "fr" else "Creative mode: inventive and vivid."
-        if mode == "precise":
-            return "Mode précis : réponses factuelles, structurées, sans fioritures." if lang == "fr" else "Precise mode: factual and tight."
-        if mode == "teacher":
-            return "Mode prof : explique clairement, étapes, encourage." if lang == "fr" else "Teacher mode: clear steps and encouragement."
-        return "Mode équilibré : clair, utile, conversationnel." if lang == "fr" else "Balanced mode: clear and conversational."
+            base = "Mode créatif : sois inventif, images mentales, ton vivant." if lang == "fr" else "Creative mode: inventive and vivid."
+        elif mode == "precise":
+            base = "Mode précis : réponses factuelles, structurées, sans fioritures." if lang == "fr" else "Precise mode: factual and tight."
+        elif mode == "teacher":
+            base = "Mode prof : explique clairement, étapes, encourage." if lang == "fr" else "Teacher mode: clear steps and encouragement."
+        else:
+            base = "Mode équilibré : clair, utile, conversationnel." if lang == "fr" else "Balanced mode: clear and conversational."
+        return f"{base} {stamp}"
 
     def chat(
         self,
@@ -170,17 +237,32 @@ class CloudLLM:
         if not (history and history[-1].get("role") == "user" and history[-1].get("content") == user_message):
             messages.append({"role": "user", "content": user_message})
 
-        payload = {
+        max_tok = settings.llm_max_tokens
+        payload: dict[str, Any] = {
             "model": model,
             "messages": messages,
             "temperature": 0.7 if mode != "precise" else 0.3,
-            "max_tokens": settings.llm_max_tokens,
         }
+        # GPT-OSS / Compound préfèrent max_completion_tokens
+        if provider == "groq":
+            payload["max_completion_tokens"] = max_tok
+        else:
+            payload["max_tokens"] = max_tok
+
+        tools = self._tools_for(provider, model)
+        if tools:
+            payload["tools"] = tools
+
         headers = {
             "Content-Type": "application/json",
-            "User-Agent": "AlfAhou/1.0 (+https://github.com/alfredgibeau-ahoussinou/alfahou)",
+            "User-Agent": "AlfAhou/1.1 (+https://github.com/alfredgibeau-ahoussinou/alfahou)",
             "Accept": "application/json",
         }
+        if provider == "groq":
+            headers["Groq-Model-Version"] = "latest"
+        if provider == "openrouter":
+            headers["HTTP-Referer"] = "https://alfahou.netlify.app"
+            headers["X-Title"] = "AlfAhou"
         if provider != "ollama" and self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"
 
@@ -195,13 +277,23 @@ class CloudLLM:
             with urllib.request.urlopen(req, timeout=self.timeout) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
         except urllib.error.HTTPError as e:
-            body = e.read().decode("utf-8", errors="replace")[:400]
+            body = e.read().decode("utf-8", errors="replace")[:500]
             self.last_error = f"HTTP {e.code}: {body}"
-            # Si HF à court de crédits et qu’une clé Groq existe, bascule une fois
+            # Fallback chaîne : HF 402 → Groq ; modèle invalide → GPT-OSS
             if e.code in {402, 429} and provider == "hf" and os.environ.get("GROQ_API_KEY", "").strip():
                 self._resolved = None
                 self.provider = "groq"
                 self.api_key = os.environ.get("GROQ_API_KEY", "").strip()
+                self.model = GROQ_DEFAULT_MODEL
+                return self.chat(
+                    user_message=user_message,
+                    history=history,
+                    lang=lang,
+                    mode=mode,
+                    memory=memory,
+                )
+            if e.code in {400, 404} and provider == "groq" and model != GROQ_FAST_MODEL:
+                self._resolved = ("groq", "https://api.groq.com/openai/v1", GROQ_FAST_MODEL)
                 return self.chat(
                     user_message=user_message,
                     history=history,
@@ -220,7 +312,8 @@ class CloudLLM:
             self.last_error = f"Réponse invalide: {str(data)[:300]}"
             raise RuntimeError(self.last_error) from e
         self.last_error = None
-        return (text or "").strip() or None
+        cleaned = _clean_answer(text or "")
+        return cleaned or None
 
 
 _llm: CloudLLM | None = None

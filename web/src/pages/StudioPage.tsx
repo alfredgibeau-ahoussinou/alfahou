@@ -178,7 +178,9 @@ export function StudioPage() {
     fetchHealth()
       .then((d) => {
         const llm = d.models?.llm;
-        const bit = llm?.enabled ? ` · LLM ${llm.provider || "cloud"}` : " · mode léger";
+        const bit = llm?.enabled
+          ? ` · ${llm.provider || "LLM"}${llm.model ? ` · ${String(llm.model).split("/").pop()}` : ""}${llm.tools ? " · web" : ""}`
+          : " · mode léger";
         setHealth(`${d.device} · en ligne${bit}`);
       })
       .catch(() => setHealth("hors ligne"));

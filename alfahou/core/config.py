@@ -34,14 +34,14 @@ class Settings(BaseSettings):
     video_fps: int = 8
     pdf_with_image: bool = False
 
-    # LLM open-source cloud (HF / Groq) ou Ollama local
+    # LLM cloud moderne (Groq GPT-OSS / Compound, OpenRouter, HF, Ollama)
     llm_enabled: bool = True
-    llm_provider: str = "auto"  # auto | hf | groq | ollama | custom
+    llm_provider: str = "auto"  # auto | groq | compound | openrouter | hf | ollama
     llm_api_key: str = ""
-    llm_base_url: str = "https://router.huggingface.co/v1"
-    llm_model: str = "meta-llama/Llama-3.1-8B-Instruct"
-    llm_max_tokens: int = 1024
-    llm_timeout: float = 90.0
+    llm_base_url: str = "https://api.groq.com/openai/v1"
+    llm_model: str = "openai/gpt-oss-120b"
+    llm_max_tokens: int = 2048
+    llm_timeout: float = 120.0
 
     model_config = {
         "env_prefix": "ALFAHOU_",
