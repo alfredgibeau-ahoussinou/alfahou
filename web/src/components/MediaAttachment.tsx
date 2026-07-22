@@ -63,7 +63,7 @@ export function MediaAttachment({ fileUrl, modality }: Props) {
           loading="lazy"
           decoding="async"
           onError={() => setBroken(true)}
-          className="block w-full max-w-[28rem] rounded-[var(--radius-md)] border border-white/10 bg-black"
+          className="block w-full max-w-[min(40rem,100%)] rounded-[var(--radius-md)] border border-white/10 bg-black object-contain"
         />
       )}
 
@@ -76,7 +76,7 @@ export function MediaAttachment({ fileUrl, modality }: Props) {
           muted
           preload="metadata"
           onError={() => setBroken(true)}
-          className="block w-full max-w-[28rem] rounded-[var(--radius-md)] border border-white/10 bg-black"
+          className="block w-full max-w-[min(40rem,100%)] rounded-[var(--radius-md)] border border-white/10 bg-black"
         />
       )}
 

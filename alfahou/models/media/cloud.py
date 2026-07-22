@@ -17,13 +17,17 @@ from typing import Any
 from alfahou.core.config import settings
 from alfahou.models.text.llm_engine import _hydrate_env_from_dotenv
 
-# Modèles image OpenRouter (du moins cher / rapide au plus premium)
+# Qualité d’abord, puis fallbacks plus légers / rapides
 OR_IMAGE_MODELS = (
+    "black-forest-labs/flux.2-pro",
+    "google/gemini-3.1-flash-image",
+    "sourceful/riverflow-v2.5-pro",
+    "bytedance-seed/seedream-4.5",
+    "openai/gpt-image-1-mini",
+    "black-forest-labs/flux.2-flex",
+    "google/gemini-3.1-flash-lite-image",
     "black-forest-labs/flux.2-klein-4b",
     "sourceful/riverflow-v2.5-fast",
-    "google/gemini-3.1-flash-lite-image",
-    "google/gemini-3.1-flash-image",
-    "openrouter/auto-beta",
 )
 
 OR_VIDEO_MODELS = (
@@ -62,6 +66,66 @@ def clean_media_prompt(prompt: str) -> str:
         flags=re.I,
     )
     return t.strip(" .,:;") or prompt.strip()
+
+
+def beautiful_image_prompt(prompt: str) -> str:
+    """Enrichit le sujet pour une image éditoriale soignée (sans écraser un style demandé)."""
+    raw = prompt.lower()
+    is_illustration = any(
+        k in raw
+        for k in (
+            "illustration",
+            "dessin",
+            "anime",
+            "manga",
+            "cartoon",
+            "comic",
+            "sketch",
+            "watercolor",
+            "aquarelle",
+            "peinture",
+            "pixel",
+            "3d render",
+            "rendu 3d",
+        )
+    )
+    subject = clean_media_prompt(prompt)
+    low = subject.lower()
+    if any(
+        marker in low
+        for marker in (
+            "editorial photography",
+            "masterpiece quality",
+            "high-end illustration",
+            "cinematic 16:9",
+        )
+    ):
+        return subject
+    if is_illustration or any(
+        k in low
+        for k in (
+            "illustration",
+            "dessin",
+            "anime",
+            "manga",
+            "cartoon",
+            "comic",
+            "sketch",
+            "watercolor",
+            "aquarelle",
+            "peinture",
+            "pixel",
+        )
+    ):
+        return (
+            f"{subject}. High-end illustration, deliberate composition, refined color palette, "
+            "clean craftsmanship, rich detail, balanced lighting, no watermark, no text overlay."
+        )
+    return (
+        f"{subject}. Editorial photography, refined composition, soft natural light, "
+        "subtle depth of field, sharp detail, rich texture, sophisticated warm color grade, "
+        "authentic atmosphere, no watermark, no text overlay, masterpiece quality."
+    )
 
 
 def cinematic_video_prompt(prompt: str) -> str:
@@ -164,23 +228,23 @@ def generate_image_openrouter(
     return None
 
 
-def generate_image_pollinations(prompt: str, *, width: int = 1024, height: int = 1024) -> Path:
-    """Backend image gratuit et fiable (Pollinations)."""
-    q = urllib.parse.quote(prompt[:400])
+def generate_image_pollinations(prompt: str, *, width: int = 1280, height: int = 1280) -> Path:
+    """Backend image gratuit et fiable (Pollinations / Flux)."""
+    q = urllib.parse.quote(prompt[:900])
     url = (
         f"https://image.pollinations.ai/prompt/{q}"
-        f"?width={width}&height={height}&nologo=true&enhance=true&model=flux"
+        f"?width={width}&height={height}&nologo=true&enhance=true&model=flux&private=true"
     )
-    raw, ctype = _http_bytes(url, headers={"User-Agent": "AlfAhou/1.2"}, timeout=120)
+    raw, ctype = _http_bytes(url, headers={"User-Agent": "AlfAhou/1.2"}, timeout=150)
     if len(raw) < 1000:
         raise RuntimeError("Image Pollinations invalide")
     ext = "jpg" if "jpeg" in ctype or raw[:2] == b"\xff\xd8" else "png"
     return _save_bytes(raw, "img", ext)
 
 
-def generate_image(prompt: str, *, aspect_ratio: str = "1:1") -> tuple[Path, str]:
+def generate_image(prompt: str, *, aspect_ratio: str = "1:1", enrich: bool = True) -> tuple[Path, str]:
     """Retourne (path, provider)."""
-    prompt = clean_media_prompt(prompt)
+    prompt = beautiful_image_prompt(prompt) if enrich else clean_media_prompt(prompt)
     # 1) OpenRouter si crédits
     if openrouter_available():
         try:
@@ -189,13 +253,15 @@ def generate_image(prompt: str, *, aspect_ratio: str = "1:1") -> tuple[Path, str
                 return path, "openrouter"
         except Exception:
             pass
-    # 2) Pollinations gratuit
+    # 2) Pollinations gratuit — résolution plus haute
     if aspect_ratio == "16:9":
-        path = generate_image_pollinations(prompt, width=1280, height=720)
+        path = generate_image_pollinations(prompt, width=1440, height=810)
     elif aspect_ratio == "9:16":
-        path = generate_image_pollinations(prompt, width=720, height=1280)
+        path = generate_image_pollinations(prompt, width=810, height=1440)
+    elif aspect_ratio == "4:5":
+        path = generate_image_pollinations(prompt, width=1080, height=1350)
     else:
-        path = generate_image_pollinations(prompt)
+        path = generate_image_pollinations(prompt, width=1280, height=1280)
     return path, "pollinations"
 
 
@@ -344,7 +410,7 @@ def generate_video(prompt: str) -> tuple[Path, str]:
         except Exception:
             pass
     # Fallback : still 16:9 + Ken Burns sobre (pas d’étirement 1:1→16:9)
-    still, img_provider = generate_image(video_prompt, aspect_ratio="16:9")
+    still, img_provider = generate_image(video_prompt, aspect_ratio="16:9", enrich=False)
     path = animate_still_to_video(still)
     return path, f"{img_provider}+motion"
 
