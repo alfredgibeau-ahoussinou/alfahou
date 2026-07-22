@@ -7,6 +7,7 @@ import {
   deleteSession,
   fetchHealth,
   fetchSession,
+  forgetSessionId,
   getActiveSessionId,
   listOwnedSessions,
   rememberSessionId,
@@ -124,7 +125,7 @@ export function StudioPage() {
     }
   }, []);
 
-  const loadConversation = useCallback(async (id: string) => {
+  const loadConversation = useCallback(async (id: string): Promise<boolean> => {
     try {
       const detail = await fetchSession(id);
       rememberSessionId(id);
@@ -137,8 +138,11 @@ export function StudioPage() {
       setSidebarOpen(false);
       const last = [...(detail.messages || [])].reverse().find((m) => m.role === "assistant");
       setLastBot(last?.content || "");
+      return true;
     } catch {
-      setStatus("Impossible de rouvrir cette conversation.");
+      forgetSessionId(id);
+      setStatus("");
+      return false;
     }
   }, []);
 
@@ -156,10 +160,17 @@ export function StudioPage() {
       document.body.classList.remove("busy");
       await refreshSessions();
       taRef.current?.focus();
-    } catch {
+    } catch (err) {
+      // L’API chat peut créer la session au premier message.
       setSessionId(null);
+      localStorage.removeItem("alfahou_session");
       setTurns([{ ...WELCOME, id: crypto.randomUUID() }]);
       setCurrentTitle("Nouvelle conversation");
+      setStatus(
+        err instanceof Error && err.message
+          ? `Session locale prête — envoie un message (${err.message}).`
+          : "Session locale prête — envoie un message pour démarrer.",
+      );
     }
   }, [mode, refreshSessions]);
 
@@ -180,12 +191,8 @@ export function StudioPage() {
       await refreshSessions();
       const active = getActiveSessionId();
       if (active) {
-        try {
-          await loadConversation(active);
-          return;
-        } catch {
-          /* fallthrough */
-        }
+        const ok = await loadConversation(active);
+        if (ok) return;
       }
       await startNewConversation();
     })();
@@ -216,17 +223,6 @@ export function StudioPage() {
     if (!value || busy) return;
 
     let activeId = sessionId;
-    if (!activeId) {
-      try {
-        const s = await createSession({ mode });
-        activeId = s.id;
-        rememberSessionId(s.id);
-        setSessionId(s.id);
-      } catch {
-        setStatus("Impossible de créer la conversation.");
-        return;
-      }
-    }
 
     setBusy(true);
     setStatus("");
@@ -236,6 +232,18 @@ export function StudioPage() {
     setTyping(true);
 
     try {
+      // Si pas encore de session, on en crée une ; sinon le chat en crée une au besoin.
+      if (!activeId) {
+        try {
+          const s = await createSession({ mode, language: "fr" });
+          activeId = s.id;
+          rememberSessionId(s.id);
+          setSessionId(s.id);
+        } catch {
+          activeId = null;
+        }
+      }
+
       const data = await sendChat({
         prompt: value,
         session_id: activeId,
