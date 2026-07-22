@@ -89,18 +89,18 @@ function stamp() {
 
 function addRow({ role, text, fileUrl, modality }) {
   const el = document.createElement("article");
-  el.className = `beat ${role === "you" ? "you" : "bot"}`;
+  el.className = `turn ${role === "you" ? "you" : "bot"}`;
 
-  const cue = document.createElement("p");
-  cue.className = "cue";
-  cue.innerHTML = `<span>${role === "you" ? "Toi" : "AlfAhou"}</span><time>${stamp()}</time>`;
-  el.appendChild(cue);
+  const head = document.createElement("header");
+  head.className = "turn-head";
+  head.innerHTML = `<span class="who">${role === "you" ? "Toi" : "AlfAhou"}</span><time class="when">${stamp()}</time>`;
+  el.appendChild(head);
 
-  const scene = document.createElement("div");
-  scene.className = "scene" + (role === "bot" ? " md" : "");
-  if (role === "you") scene.textContent = text || "";
-  else scene.innerHTML = renderMarkdown(text || "");
-  el.appendChild(scene);
+  const body = document.createElement("div");
+  body.className = "turn-body" + (role === "bot" ? " md" : "");
+  if (role === "you") body.textContent = text || "";
+  else body.innerHTML = renderMarkdown(text || "");
+  el.appendChild(body);
 
   if (fileUrl && role === "bot") {
     const url = assetUrl(fileUrl);
@@ -131,9 +131,9 @@ function addRow({ role, text, fileUrl, modality }) {
 
 function addTyping() {
   const el = document.createElement("article");
-  el.className = "beat bot typing";
+  el.className = "turn bot typing";
   el.id = "typing";
-  el.innerHTML = `<p class="cue"><span>AlfAhou</span><time>…</time></p><div class="scene"><span class="dots"><i></i><i></i><i></i></span></div>`;
+  el.innerHTML = `<header class="turn-head"><span class="who">AlfAhou</span><time class="when">…</time></header><div class="turn-body"><span class="dots"><i></i><i></i><i></i></span></div>`;
   threadEl.appendChild(el);
   el.scrollIntoView({ behavior: "smooth", block: "end" });
 }
@@ -194,10 +194,10 @@ btnReset.addEventListener("click", async () => {
   threadEl.innerHTML = "";
   addRow({
     role: "bot",
-    text: "Nouvelle scène. Dis-moi ce que tu veux créer ou comprendre.",
+    text: "Nouveau fil. Dis-moi ce que tu veux créer ou comprendre.",
   });
   document.body.classList.remove("busy");
-  threadEl.querySelector(".beat")?.classList.add("welcome");
+  threadEl.querySelector(".turn")?.classList.add("welcome");
   showSuggestions(["Bonjour", "Que sais-tu faire ?", "Fais un plan"]);
   setStatus("");
 });
