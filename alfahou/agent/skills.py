@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from typing import Callable
 
+from alfahou.agent.converse import direct_answer, try_chitchat
 from alfahou.agent.tools import convert_units, now_paris, safe_calculate
 from alfahou.models.text.bilingual import detect_lang
 
@@ -438,70 +439,10 @@ def skill_swot(prompt: str, lang: str) -> str:
 
 def skill_general(prompt: str, lang: str, mode: str, memory: dict) -> str:
     name = memory.get("name")
-    hello = f"{name}, " if name else ""
-    topic = prompt.strip()
-    if mode == "teacher":
-        if lang == "en":
-            return (
-                f"{hello}let’s learn this carefully.\n\n"
-                f"**Topic:** {topic}\n\n"
-                f"1) Core idea in one sentence\n"
-                f"2) Why it matters\n"
-                f"3) A tiny exercise\n\n"
-                f"Reply with “go deeper” or ask a precise question."
-            )
-        return (
-            f"{hello}on va apprendre ça proprement.\n\n"
-            f"**Sujet :** {topic}\n\n"
-            f"1) Idée centrale en une phrase\n"
-            f"2) Pourquoi c’est important\n"
-            f"3) Mini exercice\n\n"
-            f"Réponds « approfondis » ou pose une question précise."
-        )
-    if mode == "creative":
-        if lang == "en":
-            return (
-                f"{hello}here’s a creative angle on **{topic}**:\n\n"
-                f"- Unexpected metaphor\n"
-                f"- Short scene\n"
-                f"- Bold headline\n"
-                f"- Visual idea for an image\n\n"
-                f"Want me to turn one of these into a full piece?"
-            )
-        return (
-            f"{hello}voici un angle créatif sur **{topic}** :\n\n"
-            f"- Métaphore inattendue\n"
-            f"- Petite scène\n"
-            f"- Accroche forte\n"
-            f"- Idée visuelle pour une image\n\n"
-            f"Je développe lequel ?"
-        )
-    if mode == "precise":
-        if lang == "en":
-            return (
-                f"{hello}**Answer**\n{topic}\n\n"
-                f"**Assumptions**\n- You want a direct, usable response\n\n"
-                f"**Next step**\nTell me the exact output format (email, list, code, PDF)."
-            )
-        return (
-            f"{hello}**Réponse**\n{topic}\n\n"
-            f"**Hypothèses**\n- Tu veux une réponse directe et utilisable\n\n"
-            f"**Prochaine étape**\nDis-moi le format exact (mail, liste, code, PDF)."
-        )
-    # balanced
-    if lang == "en":
-        return (
-            f"{hello}I can help with **{topic}**.\n\n"
-            f"I can: explain, summarize, translate, rewrite, plan, brainstorm, write email/code/story, "
-            f"do math, create an image/video/PDF.\n\n"
-            f"Tell me the format you want — or just say “make a plan”."
-        )
-    return (
-        f"{hello}je peux t’aider sur **{topic}**.\n\n"
-        f"Je peux : expliquer, résumer, traduire, réécrire, planifier, brainstormer, écrire mail/code/histoire, "
-        f"calculer, créer image/vidéo/PDF.\n\n"
-        f"Dis-moi le format voulu — ou simplement « fais un plan »."
-    )
+    chat = try_chitchat(prompt, lang, name)
+    if chat:
+        return chat
+    return direct_answer(prompt, lang, mode, name)
 
 
 SkillFn = Callable[[str, str], str]

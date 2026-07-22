@@ -4,9 +4,9 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
+from alfahou.agent.converse import try_chitchat
 from alfahou.agent.memory import STORE, Session, extract_name
 from alfahou.agent.skills import run_text_skill
-from alfahou.core.config import settings
 from alfahou.models.image.engine import ImageEngine
 from alfahou.models.pdf.engine import PDFEngine
 from alfahou.models.text.bilingual import detect_lang
@@ -108,55 +108,40 @@ class AlfAhouBrain:
         if name:
             session.memory["name"] = name
             if lang == "en":
-                return f"Nice to meet you, {name}. I’m AlfAhou — what should we create together?"
-            return f"Enchanté, {name}. Je suis AlfAhou — on crée quoi ensemble ?"
+                return f"Nice to meet you, {name}. What do you want to do?"
+            return f"Enchanté, {name}. Qu’est-ce que tu veux faire ?"
 
-        if re.fullmatch(r"(bonjour|salut|bonsoir|hey|hi|hello|good\s*(morning|evening|afternoon))[!?.]*", t):
-            who = session.memory.get("name")
-            if lang == "en":
-                return (
-                    f"Hello{(' ' + who) if who else ''}! I’m AlfAhou, your multimedia AI "
-                    f"(text, image, video, PDF — FR/EN). What’s on your mind?"
-                )
-            return (
-                f"Bonjour{(' ' + who) if who else ''} ! Je suis AlfAhou, ton IA multimédia "
-                f"(texte, image, vidéo, PDF — FR/EN). Qu’est-ce qu’on fait ?"
-            )
-        if re.search(r"\b(merci|thanks|thank you)\b", t):
-            return "Avec plaisir 🙌" if lang == "fr" else "You’re welcome 🙌"
+        who = session.memory.get("name")
+        chitchat = try_chitchat(prompt, lang, who)
+        if chitchat:
+            return chitchat
+
         if re.search(r"\b(qui es[- ]tu|who are you|présente[- ]toi|about you|about alfahou)\b", t):
             if lang == "en":
                 return (
                     "I’m **AlfAhou** — Alfred + Ahoussinou.\n\n"
-                    "I chat with memory, write/translate/summarize/plan/code, do math, "
-                    "and generate images, videos, and PDFs. No third-party cloud LLM API."
+                    "I chat naturally, write and help with ideas, and I can also make images, videos, and PDFs. "
+                    "Talk to me like a normal person — any words, any tone."
                 )
             return (
                 "Je suis **AlfAhou** — Alfred + Ahoussinou.\n\n"
-                "Je discute avec mémoire, j’écris/traduis/résume/planifie/code, je calcule, "
-                "et je génère images, vidéos et PDF. Pas d’API LLM cloud tierce."
+                "Je discute naturellement, j’écris et j’aide sur tes idées, et je peux aussi faire images, vidéos et PDF. "
+                "Parle-moi comme à quelqu’un — tous les mots, tous les tons."
             )
-        if re.search(r"\b(aide|help|que sais[- ]tu faire|what can you do|capacités|capabilities)\b", t):
+        if re.fullmatch(
+            r"(aide|help|que sais[- ]tu faire|what can you do|capacités|capabilities)[!?.]*",
+            t,
+        ) or re.search(r"\b(que sais[- ]tu faire|what can you do|tes capacités|your capabilities)\b", t):
             if lang == "en":
                 return (
-                    "I can:\n"
-                    "• Chat (multi-turn, FR/EN)\n"
-                    "• Write, translate, summarize, rewrite, explain\n"
-                    "• Brainstorm, plan, SWOT, checklists\n"
-                    "• Emails, posts, stories, poems, study sheets\n"
-                    "• Code sketches & math\n"
-                    "• Images, videos, PDFs\n\n"
-                    "Try: “Explain quantum simply” or “Image: red circle”."
+                    "I can chat like this, write texts, explain things, plan, brainstorm, "
+                    "sketch code, do math, and create images, videos, or PDFs.\n\n"
+                    "Just say what you need in plain words."
                 )
             return (
-                "Je peux :\n"
-                "• Discuter (multi-tours, FR/EN)\n"
-                "• Écrire, traduire, résumer, réécrire, expliquer\n"
-                "• Brainstorm, plan, SWOT, checklists\n"
-                "• Mails, posts, histoires, poèmes, fiches\n"
-                "• Code & maths\n"
-                "• Images, vidéos, PDF\n\n"
-                "Essaie : « Explique la photosynthèse » ou « Image : cercle rouge »."
+                "Je peux discuter comme ça, écrire des textes, expliquer, planifier, brainstormer, "
+                "esquisser du code, calculer, et créer des images, vidéos ou PDF.\n\n"
+                "Dis-moi juste ce dont tu as besoin, avec tes mots."
             )
         return None
 

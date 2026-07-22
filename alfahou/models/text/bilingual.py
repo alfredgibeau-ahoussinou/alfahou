@@ -28,7 +28,11 @@ def detect_lang(text: str) -> str:
 
 def classify_intent(text: str) -> str:
     t = text.lower().strip()
-    if re.fullmatch(r"(bonjour|salut|bonsoir|hey|hi|hello|good\s*(morning|evening|afternoon))[!?.]*", t):
+    if re.fullmatch(
+        r"(bonjour|salut|bonsoir|coucou|yo|wesh|all[oô]|hey|hi|hello|"
+        r"good\s*(morning|evening|afternoon))[!?.]*",
+        t,
+    ):
         return "greeting"
     if re.search(r"\b(merci|thanks|thank you)\b", t):
         return "thanks"
@@ -55,16 +59,8 @@ def classify_intent(text: str) -> str:
 
 RESPONSES: dict[str, dict[str, str]] = {
     "greeting": {
-        "fr": (
-            "Bonjour ! Je suis AlfAhou, l’IA multimédia d’Alfred Ahoussinou.\n\n"
-            "Je peux t’aider en français ou en anglais : rédiger un texte, créer une image, "
-            "une vidéo ou un PDF. Dis-moi simplement ce que tu veux."
-        ),
-        "en": (
-            "Hello! I’m AlfAhou, Alfred Ahoussinou’s multimedia AI.\n\n"
-            "I work in French and English: I can write text, create an image, a video, or a PDF. "
-            "Just tell me what you need."
-        ),
+        "fr": "Coucou ! Comment ça va ?",
+        "en": "Hey! How’s it going?",
     },
     "thanks": {
         "fr": "Avec plaisir. Si tu veux autre chose — texte, image, vidéo ou PDF — je suis là.",
@@ -189,12 +185,20 @@ def compose_text(prompt: str, lang: str) -> str:
 
 def bilingual_reply(prompt: str) -> str | None:
     """Réponse conversationnelle FR/EN si l’intention est claire ; sinon None."""
+    from alfahou.agent.converse import direct_answer, try_chitchat
+
     lang = detect_lang(prompt)
+    chat = try_chitchat(prompt, lang)
+    if chat:
+        return chat
     intent = classify_intent(prompt)
     if intent == "compose":
         if len(prompt.strip()) >= 3:
-            return compose_text(prompt, lang)
+            return direct_answer(prompt, lang, "balanced", None)
         return None
     if intent in ("switch_en", "switch_fr"):
         lang = "en" if intent == "switch_en" else "fr"
+    if intent == "greeting":
+        # filet de sécurité si try_chitchat n’a pas matché
+        return "Coucou ! Comment ça va ?" if lang == "fr" else "Hey! How’s it going?"
     return RESPONSES[intent][lang]
