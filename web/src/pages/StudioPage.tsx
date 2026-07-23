@@ -323,7 +323,7 @@ export function StudioPage() {
   };
 
   return (
-    <div className="relative z-10 flex h-dvh max-h-dvh flex-col overflow-hidden">
+    <div data-studio className="relative z-10 flex h-dvh max-h-dvh flex-col overflow-hidden">
       <header className="sticky top-0 z-20 shrink-0 border-b border-white/10 bg-[rgba(6,7,8,0.78)] backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-[1500px] items-center justify-between gap-2 px-[clamp(1.25rem,4vw,3.5rem)] py-2.5 sm:gap-3 sm:py-3.5">
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
@@ -372,10 +372,10 @@ export function StudioPage() {
         </div>
       </header>
 
-      <div className="mx-auto flex min-h-0 w-full max-w-[1500px] flex-1 gap-0 px-0 md:gap-6 md:px-[clamp(1.25rem,4vw,3.5rem)] md:pt-5 md:pb-6">
+      <div className="mx-auto flex min-h-0 w-full max-w-[1500px] flex-1 gap-0 overflow-hidden px-0 md:gap-6 md:px-[clamp(1.25rem,4vw,3.5rem)] md:pt-4 md:pb-8 lg:pt-5 lg:pb-10">
         {/* Sidebar conversations */}
         <aside
-          className={`fixed inset-y-0 left-0 z-30 flex w-[min(20rem,88vw)] flex-col border-r border-white/10 bg-[rgba(8,10,11,0.96)] pt-[3.6rem] backdrop-blur-xl transition-transform duration-300 lg:static lg:z-0 lg:w-[20rem] lg:shrink-0 lg:translate-x-0 lg:rounded-[var(--radius-lg)] lg:border lg:border-white/10 lg:bg-[rgba(13,16,18,0.55)] lg:pt-0 lg:backdrop-blur-md ${
+          className={`fixed inset-y-0 left-0 z-30 flex w-[min(20rem,88vw)] flex-col border-r border-white/10 bg-[rgba(8,10,11,0.96)] pt-[3.6rem] backdrop-blur-xl transition-transform duration-300 lg:static lg:z-0 lg:h-full lg:w-[20rem] lg:shrink-0 lg:translate-x-0 lg:rounded-[var(--radius-lg)] lg:border lg:border-white/10 lg:bg-[rgba(13,16,18,0.55)] lg:pt-0 lg:backdrop-blur-md ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
           }`}
         >
@@ -441,8 +441,8 @@ export function StudioPage() {
           />
         )}
 
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col px-[clamp(0.85rem,3vw,1.5rem)] pb-[calc(5.75rem+env(safe-area-inset-bottom))] lg:px-0 lg:pb-0">
-          <div className="mb-3 hidden items-end justify-between gap-4 border-b border-white/10 pb-4 lg:flex">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-[clamp(0.85rem,3vw,1.5rem)] pb-[calc(5.75rem+env(safe-area-inset-bottom))] lg:px-0 lg:pb-0">
+          <div className="mb-3 hidden shrink-0 items-end justify-between gap-4 border-b border-white/10 pb-4 lg:flex">
             <div>
               <p className="text-[0.65rem] tracking-[0.16em] text-[var(--color-mute)] uppercase">Fil actif</p>
               <h2 className="font-mega mt-1 text-[1.6rem] font-semibold tracking-[-0.02em] italic">{currentTitle}</h2>
@@ -488,7 +488,7 @@ export function StudioPage() {
           </div>
 
           {/* Mobile controls */}
-          <div className="mb-3 flex flex-col gap-3 lg:hidden">
+          <div className="mb-3 flex shrink-0 flex-col gap-3 lg:hidden">
             <h2 className="font-mega text-[1.35rem] font-semibold italic">{currentTitle}</h2>
             <div className="flex flex-wrap items-end gap-4">
               <label className="flex flex-col gap-1">
@@ -530,10 +530,10 @@ export function StudioPage() {
             </div>
           </div>
 
-          <section className="flex min-h-0 flex-1 flex-col gap-3 md:min-h-[calc(100dvh-9rem)] md:rounded-[var(--radius-lg)] md:border md:border-white/10 md:bg-[rgba(13,16,18,0.45)] md:p-6 md:backdrop-blur-md lg:p-7">
+          <section className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden md:rounded-[var(--radius-lg)] md:border md:border-white/10 md:bg-[rgba(13,16,18,0.45)] md:p-5 md:pb-6 md:backdrop-blur-md lg:p-6 lg:pb-7">
             <div
               ref={threadRef}
-              className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain py-2 [-webkit-overflow-scrolling:touch] md:min-h-[12rem] md:gap-6 md:py-4"
+              className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain py-2 [-webkit-overflow-scrolling:touch] md:gap-6 md:py-3"
             >
               <AnimatePresence initial={false}>
                 {turns.map((t) => (
@@ -606,9 +606,9 @@ export function StudioPage() {
 
             <form
               onSubmit={onSubmit}
-              className="fixed right-0 bottom-[var(--kbd-offset,0px)] left-0 z-40 grid grid-cols-[1fr_auto] items-end gap-1.5 bg-[linear-gradient(180deg,transparent,rgba(6,7,8,0.97)_28%)] px-[clamp(0.85rem,3vw,1.5rem)] pt-3 pb-[calc(0.65rem+env(safe-area-inset-bottom))] md:relative md:bottom-auto md:bg-none md:px-0 md:pt-2 md:pb-0"
+              className="fixed right-0 bottom-[var(--kbd-offset,0px)] left-0 z-40 grid grid-cols-[1fr_auto] items-end gap-1.5 bg-[linear-gradient(180deg,transparent,rgba(6,7,8,0.97)_28%)] px-[clamp(0.85rem,3vw,1.5rem)] pt-3 pb-[calc(0.65rem+env(safe-area-inset-bottom))] lg:relative lg:bottom-auto lg:z-10 lg:mt-1 lg:shrink-0 lg:bg-none lg:px-0 lg:pt-2 lg:pb-0"
             >
-              <div className="pointer-events-none absolute inset-x-[clamp(0.85rem,3vw,1.5rem)] inset-y-2 rounded-[var(--radius-lg)] border border-white/15 bg-[rgba(13,16,18,0.92)] backdrop-blur-xl md:inset-0" />
+              <div className="pointer-events-none absolute inset-x-[clamp(0.85rem,3vw,1.5rem)] inset-y-2 rounded-[var(--radius-lg)] border border-white/15 bg-[rgba(13,16,18,0.92)] backdrop-blur-xl lg:inset-0" />
               <textarea
                 ref={taRef}
                 value={prompt}

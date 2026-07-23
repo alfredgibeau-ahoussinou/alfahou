@@ -24,10 +24,11 @@ export function AppShell() {
         className="pointer-events-none fixed inset-0 z-[2] animate-[grain-shift_8s_steps(8)_infinite] bg-[url('data:image/svg+xml,%3Csvg%20viewBox=%270%200%20256%20256%27%20xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cfilter%20id=%27n%27%3E%3CfeTurbulence%20type=%27fractalNoise%27%20baseFrequency=%270.9%27%20numOctaves=%274%27%20stitchTiles=%27stitch%27/%3E%3C/filter%3E%3Crect%20width=%27100%25%27%20height=%27100%25%27%20filter=%27url(%23n)%27%20opacity=%270.55%27/%3E%3C/svg%3E')] bg-[length:180px] opacity-[0.14] mix-blend-overlay"
       />
       <Cursor />
-      <div className="relative z-10 min-h-dvh">
+      <div className="relative z-10 min-h-dvh [&:has([data-studio])]:h-dvh [&:has([data-studio])]:max-h-dvh [&:has([data-studio])]:overflow-hidden">
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
+            className="h-full"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
