@@ -72,13 +72,13 @@ function TiltCard({
 export function ManifestPage() {
   const navigate = useNavigate();
   return (
-    <div className="relative z-10 min-h-dvh px-[clamp(1.1rem,4vw,2.75rem)] pb-16">
-      <header className="flex items-center justify-between gap-3 py-4">
-        <div className="flex min-w-0 items-center gap-3">
-          <BrandLogo heightClass="h-7 sm:h-8" />
+    <div className="relative z-10 mx-auto min-h-dvh w-full max-w-[1500px] px-[clamp(1.25rem,5vw,4.5rem)] pb-16">
+      <header className="flex items-center justify-between gap-3 py-5">
+        <div className="flex min-w-0 items-center gap-3 md:gap-4">
+          <BrandLogo heightClass="h-7 md:h-9" />
           <Link
             to="/"
-            className="hidden px-2 py-2.5 text-[0.75rem] tracking-[0.12em] text-[var(--color-ink-dim)] uppercase transition-colors hover:text-[var(--color-ink)] sm:inline"
+            className="hidden px-2 py-2.5 text-[0.75rem] tracking-[0.14em] text-[var(--color-ink-dim)] uppercase transition-colors hover:text-[var(--color-ink)] sm:inline md:text-[0.8rem]"
           >
             Accueil
           </Link>
@@ -88,20 +88,20 @@ export function ManifestPage() {
         </MagneticButton>
       </header>
 
-      <div className="grid items-start gap-10 pt-4 md:grid-cols-[0.85fr_1.15fr] md:gap-16">
-        <div className="md:sticky md:top-20">
+      <div className="grid items-start gap-10 pt-6 md:grid-cols-[0.9fr_1.1fr] md:gap-16 lg:gap-24 lg:pt-10">
+        <div className="md:sticky md:top-24">
           <motion.h2
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            className="font-mega text-[clamp(2.8rem,8vw,5rem)] leading-none font-semibold tracking-[-0.02em] italic"
+            className="font-mega text-[clamp(2.8rem,7vw,5.5rem)] leading-none font-semibold tracking-[-0.02em] italic"
           >
             Le manifeste
           </motion.h2>
-          <p className="mt-5 max-w-[32ch] text-[1.08rem] leading-[1.65] text-[var(--color-ink-dim)]">
+          <p className="mt-5 max-w-[34ch] text-[clamp(1.05rem,1.4vw,1.2rem)] leading-[1.65] text-[var(--color-ink-dim)]">
             AlfAhou n’est pas une coque d’API. C’est une maison.
           </p>
         </div>
-        <div className="grid gap-4">
+        <div className="grid gap-4 lg:gap-5">
           {CARDS.map((c, i) => (
             <TiltCard key={c.n} {...c} i={i} />
           ))}

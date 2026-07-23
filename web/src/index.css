@@ -42,6 +42,16 @@
     background: color-mix(in srgb, var(--color-foil) 40%, transparent);
     color: var(--color-ink);
   }
+  option {
+    background: var(--color-elev);
+    color: var(--color-ink);
+  }
+}
+
+@media (min-width: 1024px) {
+  body {
+    font-size: 17px;
+  }
 }
 
 @layer utilities {
@@ -82,6 +92,12 @@
     font-weight: 400;
     color: var(--color-ink);
     letter-spacing: 0.01em;
+  }
+  @media (min-width: 1024px) {
+    .prose-chat {
+      font-size: 1.06rem;
+      line-height: 1.72;
+    }
   }
   .prose-chat p {
     margin-bottom: 0.85em;

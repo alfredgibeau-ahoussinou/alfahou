@@ -17,7 +17,7 @@ export function AppShell() {
       <FieldCanvas />
       <div
         aria-hidden
-        className="pointer-events-none fixed inset-0 z-[1] bg-[radial-gradient(ellipse_80%_70%_at_50%_40%,transparent_30%,rgba(6,7,8,0.55)_100%),linear-gradient(180deg,rgba(6,7,8,0.2),transparent_20%,transparent_75%,rgba(6,7,8,0.75))]"
+        className="pointer-events-none fixed inset-0 z-[1] bg-[radial-gradient(ellipse_75%_65%_at_58%_42%,transparent_22%,rgba(6,7,8,0.35)_72%,rgba(6,7,8,0.72)_100%),linear-gradient(180deg,rgba(6,7,8,0.15),transparent_18%,transparent_78%,rgba(6,7,8,0.7))]"
       />
       <div
         aria-hidden

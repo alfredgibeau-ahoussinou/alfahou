@@ -324,56 +324,58 @@ export function StudioPage() {
 
   return (
     <div className="relative z-10 flex h-dvh max-h-dvh flex-col overflow-hidden">
-      <header className="sticky top-0 z-20 flex shrink-0 items-center justify-between gap-2 border-b border-white/10 bg-[rgba(6,7,8,0.72)] px-[clamp(0.85rem,3vw,2rem)] py-2.5 backdrop-blur-md sm:gap-3 sm:py-3">
-        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-          <button
-            type="button"
-            onClick={() => setSidebarOpen((v) => !v)}
-            className="min-h-10 rounded-[var(--radius-sm)] border border-white/15 px-3 py-2 text-[0.72rem] tracking-[0.1em] text-[var(--color-ink-dim)] uppercase hover:border-[var(--color-foil)] hover:text-[var(--color-ink)] lg:hidden"
-            aria-expanded={sidebarOpen}
-          >
-            Historique
-          </button>
-          <BrandLogo heightClass="h-6 sm:h-7" />
-          <p className="hidden truncate text-[0.7rem] text-[var(--color-mute)] sm:block">
-            <span className="mr-1.5 inline-block h-1.5 w-1.5 bg-[var(--color-foil)] shadow-[0_0_0_3px_rgba(212,184,150,0.15)]" />
-            {health}
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-wrap justify-end gap-0.5">
-          <button
-            type="button"
-            onClick={startNewConversation}
-            className="min-h-10 px-2.5 py-2 text-[0.72rem] tracking-[0.1em] text-[var(--color-foil)] uppercase hover:text-[var(--color-ink)] sm:px-3 sm:text-[0.75rem]"
-          >
-            + Nouveau
-          </button>
-          <Link
-            to="/manifeste"
-            className="hidden min-h-10 px-3 py-2.5 text-[0.75rem] tracking-[0.12em] text-[var(--color-ink-dim)] uppercase hover:text-[var(--color-ink)] sm:inline-flex sm:items-center"
-          >
-            Manifeste
-          </Link>
-          <button
-            type="button"
-            onClick={() => {
-              const next = !speak;
-              setSpeak(next);
-              localStorage.setItem("alfahou_speak", next ? "1" : "0");
-              if (next && lastBot) speakText(lastBot);
-              else window.speechSynthesis?.cancel();
-            }}
-            className={`min-h-10 px-2.5 py-2 text-[0.72rem] tracking-[0.1em] uppercase sm:px-3 sm:text-[0.75rem] ${speak ? "text-[var(--color-foil)]" : "text-[var(--color-ink-dim)] hover:text-[var(--color-ink)]"}`}
-          >
-            Voix
-          </button>
+      <header className="sticky top-0 z-20 shrink-0 border-b border-white/10 bg-[rgba(6,7,8,0.78)] backdrop-blur-md">
+        <div className="mx-auto flex w-full max-w-[1500px] items-center justify-between gap-2 px-[clamp(1.25rem,4vw,3.5rem)] py-2.5 sm:gap-3 sm:py-3.5">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen((v) => !v)}
+              className="min-h-10 rounded-[var(--radius-sm)] border border-white/15 px-3 py-2 text-[0.72rem] tracking-[0.1em] text-[var(--color-ink-dim)] uppercase hover:border-[var(--color-foil)] hover:text-[var(--color-ink)] lg:hidden"
+              aria-expanded={sidebarOpen}
+            >
+              Historique
+            </button>
+            <BrandLogo heightClass="h-6 sm:h-7 md:h-8" />
+            <p className="hidden truncate text-[0.7rem] text-[var(--color-mute)] sm:block md:text-[0.75rem]">
+              <span className="mr-1.5 inline-block h-1.5 w-1.5 bg-[var(--color-foil)] shadow-[0_0_0_3px_rgba(212,184,150,0.15)]" />
+              {health}
+            </p>
+          </div>
+          <div className="flex shrink-0 flex-wrap justify-end gap-0.5">
+            <button
+              type="button"
+              onClick={startNewConversation}
+              className="min-h-10 px-2.5 py-2 text-[0.72rem] tracking-[0.1em] text-[var(--color-foil)] uppercase hover:text-[var(--color-ink)] sm:px-3 sm:text-[0.75rem]"
+            >
+              + Nouveau
+            </button>
+            <Link
+              to="/manifeste"
+              className="hidden min-h-10 px-3 py-2.5 text-[0.75rem] tracking-[0.12em] text-[var(--color-ink-dim)] uppercase hover:text-[var(--color-ink)] sm:inline-flex sm:items-center"
+            >
+              Manifeste
+            </Link>
+            <button
+              type="button"
+              onClick={() => {
+                const next = !speak;
+                setSpeak(next);
+                localStorage.setItem("alfahou_speak", next ? "1" : "0");
+                if (next && lastBot) speakText(lastBot);
+                else window.speechSynthesis?.cancel();
+              }}
+              className={`min-h-10 px-2.5 py-2 text-[0.72rem] tracking-[0.1em] uppercase sm:px-3 sm:text-[0.75rem] ${speak ? "text-[var(--color-foil)]" : "text-[var(--color-ink-dim)] hover:text-[var(--color-ink)]"}`}
+            >
+              Voix
+            </button>
+          </div>
         </div>
       </header>
 
-      <div className="mx-auto flex min-h-0 w-full max-w-[1280px] flex-1 gap-0 px-0 md:gap-6 md:px-[clamp(1rem,3vw,2rem)] md:pt-4 md:pb-6">
+      <div className="mx-auto flex min-h-0 w-full max-w-[1500px] flex-1 gap-0 px-0 md:gap-6 md:px-[clamp(1.25rem,4vw,3.5rem)] md:pt-5 md:pb-6">
         {/* Sidebar conversations */}
         <aside
-          className={`fixed inset-y-0 left-0 z-30 flex w-[min(20rem,88vw)] flex-col border-r border-white/10 bg-[rgba(8,10,11,0.96)] pt-[3.6rem] backdrop-blur-xl transition-transform duration-300 lg:static lg:z-0 lg:w-[17.5rem] lg:shrink-0 lg:translate-x-0 lg:rounded-[var(--radius-lg)] lg:border lg:border-white/10 lg:bg-[rgba(13,16,18,0.55)] lg:pt-0 lg:backdrop-blur-md ${
+          className={`fixed inset-y-0 left-0 z-30 flex w-[min(20rem,88vw)] flex-col border-r border-white/10 bg-[rgba(8,10,11,0.96)] pt-[3.6rem] backdrop-blur-xl transition-transform duration-300 lg:static lg:z-0 lg:w-[20rem] lg:shrink-0 lg:translate-x-0 lg:rounded-[var(--radius-lg)] lg:border lg:border-white/10 lg:bg-[rgba(13,16,18,0.55)] lg:pt-0 lg:backdrop-blur-md ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
           }`}
         >
@@ -528,7 +530,7 @@ export function StudioPage() {
             </div>
           </div>
 
-          <section className="flex min-h-0 flex-1 flex-col gap-3 md:min-h-[calc(100dvh-8rem)] md:rounded-[var(--radius-lg)] md:border md:border-white/10 md:bg-[rgba(13,16,18,0.45)] md:p-5 md:backdrop-blur-md">
+          <section className="flex min-h-0 flex-1 flex-col gap-3 md:min-h-[calc(100dvh-9rem)] md:rounded-[var(--radius-lg)] md:border md:border-white/10 md:bg-[rgba(13,16,18,0.45)] md:p-6 md:backdrop-blur-md lg:p-7">
             <div
               ref={threadRef}
               className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain py-2 [-webkit-overflow-scrolling:touch] md:min-h-[12rem] md:gap-6 md:py-4"
@@ -540,7 +542,7 @@ export function StudioPage() {
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                    className={`max-w-[40rem] ${t.role === "you" ? "ml-auto max-w-[min(36rem,100%)]" : ""}`}
+                    className={`max-w-[min(52rem,100%)] ${t.role === "you" ? "ml-auto max-w-[min(42rem,100%)]" : ""}`}
                   >
                     <header className="mb-2 flex justify-between gap-4">
                       <span className="text-[0.68rem] font-medium tracking-[0.12em] text-[var(--color-mute)] uppercase">
